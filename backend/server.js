@@ -12,7 +12,7 @@ app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
 app.use(cookieParser());
 
 // Importar rutas
-const authRoutes = require("./src/routes/authRoutes");
+const authRoutes = require("./src/routes/authroutes");
 app.use("/auth", authRoutes);
 
 app.get("/", (req, res) => {

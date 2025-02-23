@@ -1,5 +1,73 @@
 const Usuario = require("../models/Usuario");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+
+
+exports.login = async (req, res) => {
+  const { email, contrasena } = req.body;
+
+  try {
+    // Validación de campos obligatorios
+    if (!email || !contrasena) {
+      return res.status(400).json({
+        tipo: 'campos_vacios',
+        msg: 'Email y contraseña son requeridos'
+      });
+    }
+
+    // Buscar usuario en la base de datos
+    const usuario = await Usuario.buscarPorEmail(email);
+    
+    // Validar existencia de usuario
+    if (!usuario) {
+      return res.status(401).json({
+        tipo: 'credenciales_invalidas',
+        msg: 'Correo o contraseña incorrectos'
+      });
+    }
+
+    // Comparar contraseñas
+    const contrasenaValida = await bcrypt.compare(contrasena, usuario.contrasena);
+    if (!contrasenaValida) {
+      return res.status(401).json({
+        tipo: 'credenciales_invalidas',
+        msg: 'Correo o contraseña incorrectos'
+      });
+    }
+
+    // Generar JWT
+    const token = jwt.sign(
+      {
+        id: usuario.id,
+        rol: usuario.rol,
+        nombre: usuario.nombre
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    // Respuesta exitosa
+    res.json({
+      success: true,
+      msg: 'Inicio de sesión exitoso',
+      token,
+      usuario: {
+        id: usuario.id,
+        nombre: usuario.nombre,
+        email: usuario.email,
+        rol: usuario.rol
+      }
+    });
+
+  } catch (error) {
+    console.error('Error en login:', error);
+    res.status(500).json({
+      tipo: 'error_servidor',
+      msg: 'Error en el servidor al procesar la solicitud',
+      detalle: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
 
 exports.registrar = async (req, res) => {
   const { nombre, email, contrasena, rol } = req.body;

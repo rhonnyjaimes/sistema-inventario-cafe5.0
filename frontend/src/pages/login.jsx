@@ -7,6 +7,8 @@ const Login = () => {
     contrasena: ""
   });
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -16,11 +18,8 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.email || !formData.contrasena) {
-      setError("Por favor complete todos los campos");
-      return;
-    }
-
+    setIsLoading(true);
+    
     try {
       const response = await fetch("http://localhost:3001/auth/login", {
         method: "POST",
@@ -31,20 +30,34 @@ const Login = () => {
       });
 
       const data = await response.json();
-      if (response.ok) {
-        navigate("/dashboard");
-      } else {
-        setError(data.message || "Credenciales incorrectas");
+      
+      if (!response.ok) {
+        throw new Error(data.msg || "Credenciales incorrectas");
       }
+
+      // Animación de éxito
+      setIsLoggingIn(true);
+      
+      // Esperar a que termine la animación
+      setTimeout(() => {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.usuario));
+        navigate("/dashboard");
+      }, 800);
+
     } catch (error) {
       console.error("Error:", error);
-      setError("Error de conexión con el servidor");
+      setError(error.message || "Error de conexión con el servidor");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden animate-slide-in-up">
+      <div className={`w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden 
+        ${isLoggingIn ? 'animate-slide-out-up animate-fade-out' : 'animate-slide-in-up'}`}>
+        
         {/* Sección de imagen */}
         <div className="relative h-32 bg-coffee">
           <img
@@ -56,14 +69,18 @@ const Login = () => {
             <img 
               src="/img/logo.jpg"
               alt="Logo Café 5.0"
-              className="h-16 w-16 rounded-full border-2 border-white animate-scale-in"
+              className={`h-16 w-16 rounded-full border-2 border-white ${
+                isLoggingIn ? 'animate-scale-out' : 'animate-scale-in'
+              }`}
             />
           </div>
         </div>
 
         {/* Formulario */}
         <div className="p-8">
-          <h2 className="text-2xl font-bold text-coffee text-center mb-6 animate-slide-in-top">
+          <h2 className={`text-2xl font-bold text-coffee text-center mb-6 ${
+            isLoggingIn ? 'animate-slide-out-top' : 'animate-slide-in-top'
+          }`}>
             Iniciar Sesión
           </h2>
           
@@ -72,6 +89,7 @@ const Login = () => {
               ⚠️ {error}
             </div>
           )}
+
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="animate-rise delay-100">
@@ -86,6 +104,7 @@ const Login = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
+                disabled={isLoading}
               />
             </div>
 
@@ -101,15 +120,24 @@ const Login = () => {
                 value={formData.contrasena}
                 onChange={handleChange}
                 required
+                disabled={isLoading}
               />
             </div>
 
             <div className="mt-6 flex flex-col gap-4">
               <button
                 type="submit"
-                className="w-full bg-coffee text-white py-2 rounded-lg font-medium hover:bg-coffee/90 transition-all duration-300 hover:scale-[1.02] active:scale-95 animate-rise delay-300"
+                className="w-full bg-coffee text-white py-2 rounded-lg font-medium hover:bg-coffee/90 transition-all duration-300 hover:scale-[1.02] active:scale-95 animate-rise delay-300 disabled:opacity-70"
+                disabled={isLoading}
               >
-                Ingresar al sistema
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Procesando...
+                  </div>
+                ) : (
+                  "Ingresar al sistema"
+                )}
               </button>
 
               <Link
