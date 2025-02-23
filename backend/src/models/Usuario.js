@@ -1,29 +1,19 @@
-const { DataTypes } = require("sequelize");
+const pool = require("../config/database");
 const bcrypt = require("bcryptjs");
-const sequelize = require("../config/database");
 
-const Usuario = sequelize.define("Usuario", {
-  nombre: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  email: {
-    type: DataTypes.STRING,
-    unique: true,
-    allowNull: false,
-  },
-  contrasena: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    set(value) {
-      const hash = bcrypt.hashSync(value, 10); // Hash automático al guardar
-      this.setDataValue("contrasena", hash);
-    },
-  },
-  rol: {
-    type: DataTypes.ENUM("operario", "supervisor", "gerente"),
-    defaultValue: "operario",
-  },
-});
+class Usuario {
+  static async crear(nombre, email, contrasena, rol) {
+    const hashedPassword = await bcrypt.hash(contrasena, 10);
+    const query = "INSERT INTO usuarios (nombre, email, contrasena, rol) VALUES (?, ?, ?, ?)";
+    const [result] = await pool.execute(query, [nombre, email, hashedPassword, rol]);
+    return result.insertId;
+  }
+
+  static async buscarPorEmail(email) {
+    const query = "SELECT * FROM usuarios WHERE email = ?";
+    const [result] = await pool.execute(query, [email]);
+    return result[0];
+  }
+}
 
 module.exports = Usuario;
