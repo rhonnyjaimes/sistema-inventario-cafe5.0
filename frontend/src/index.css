@@ -2,34 +2,51 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* Personalizaciones específicas que no cubre Tailwind */
-:root {
-  --color-primary: #4A2C2A;    /* Café principal */
-  --color-secondary: #8FBC8F;  /* Verde menta */
+
+/* Animaciones personalizadas para el checkmark */
+.checkmark__circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  animation: check 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
 }
 
-/* Mantenemos solo las personalizaciones esenciales */
-body {
-  @apply min-h-screen;  /* Tailwind ya tiene min-h-screen */
-  margin: 0;
-  min-width: 320px;
+.checkmark__check {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: check 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.3s forwards;
 }
 
-/* Sobreescribimos estilos base de Tailwind si es necesario */
+/* Variables de color personalizadas */
 @layer base {
-  button {
-    @apply transition-colors duration-300; /* Mejor control de transiciones */
+  :root {
+    --color-primary: #4A2C2A;    /* Café principal */
+    --color-secondary: #8FBC8F;  /* Verde menta */
   }
-  
+
+  /* Estilos base modificados */
+  body {
+    @apply min-h-screen min-w-[320px] m-0;
+  }
+
+  button {
+    @apply transition-colors duration-300;
+  }
+
   h1 {
-    @apply text-3xl font-bold; /* Tamaño base para h1 */
+    @apply text-3xl font-bold;
   }
 }
 
-/* Modo oscuro - mejor manejarlo con Tailwind */
+/* Modo oscuro - Recomendado usar class-based en Tailwind */
 @media (prefers-color-scheme: dark) {
   :root {
     --color-primary: #8FBC8F;
     --color-secondary: #4A2C2A;
   }
+}
+
+/* Si usas dark mode con clase, mejor agregar esto */
+.dark {
+  --color-primary: #8FBC8F;
+  --color-secondary: #4A2C2A;
 }

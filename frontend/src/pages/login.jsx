@@ -1,22 +1,23 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     contrasena: ""
   });
-
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.contrasena) {
-      alert("Por favor complete todos los campos");
+      setError("Por favor complete todos los campos");
       return;
     }
 
@@ -31,44 +32,49 @@ const Login = () => {
 
       const data = await response.json();
       if (response.ok) {
-        alert("Inicio de sesión exitoso");
         navigate("/dashboard");
       } else {
-        alert(data.message || "Credenciales incorrectas");
+        setError(data.message || "Credenciales incorrectas");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Error de conexión con el servidor");
+      setError("Error de conexión con el servidor");
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden animate-slide-in-up">
         {/* Sección de imagen */}
         <div className="relative h-32 bg-coffee">
           <img
             src="/img/cafe.jpg"
             alt="Café 5.0"
-            className="w-full h-full object-cover opacity-75"
+            className="w-full h-full object-cover opacity-75 animate-fade-in"
           />
           <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
             <img 
               src="/img/logo.jpg"
               alt="Logo Café 5.0"
-              className="h-16 w-16 rounded-full border-2 border-white"
+              className="h-16 w-16 rounded-full border-2 border-white animate-scale-in"
             />
           </div>
         </div>
 
         {/* Formulario */}
         <div className="p-8">
-          <h2 className="text-2xl font-bold text-coffee text-center mb-6">
+          <h2 className="text-2xl font-bold text-coffee text-center mb-6 animate-slide-in-top">
             Iniciar Sesión
           </h2>
           
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg animate-shake">
+              ⚠️ {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+            <div className="animate-rise delay-100">
               <label className="block text-sm font-medium text-coffee mb-1">
                 Correo electrónico
               </label>
@@ -76,14 +82,14 @@ const Login = () => {
                 type="email"
                 name="email"
                 placeholder="usuario@correo.com"
-                className="w-full px-4 py-2 border border-coffee/20 rounded-lg focus:ring-2 focus:ring-coffee/50 focus:border-coffee"
+                className="w-full px-4 py-2 border border-coffee/20 rounded-lg focus:ring-2 focus:ring-coffee/50 focus:border-coffee transition-all duration-300 hover:scale-[1.02]"
                 value={formData.email}
                 onChange={handleChange}
                 required
               />
             </div>
 
-            <div>
+            <div className="animate-rise delay-200">
               <label className="block text-sm font-medium text-coffee mb-1">
                 Contraseña
               </label>
@@ -91,26 +97,38 @@ const Login = () => {
                 type="password"
                 name="contrasena"
                 placeholder="Ingrese su contraseña"
-                className="w-full px-4 py-2 border border-coffee/20 rounded-lg focus:ring-2 focus:ring-coffee/50 focus:border-coffee"
+                className="w-full px-4 py-2 border border-coffee/20 rounded-lg focus:ring-2 focus:ring-coffee/50 focus:border-coffee transition-all duration-300 hover:scale-[1.02]"
                 value={formData.contrasena}
                 onChange={handleChange}
                 required
               />
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-coffee text-white py-2 rounded-lg font-medium hover:bg-coffee/90 transition-colors"
-            >
-              Ingresar al sistema
-            </button>
+            <div className="mt-6 flex flex-col gap-4">
+              <button
+                type="submit"
+                className="w-full bg-coffee text-white py-2 rounded-lg font-medium hover:bg-coffee/90 transition-all duration-300 hover:scale-[1.02] active:scale-95 animate-rise delay-300"
+              >
+                Ingresar al sistema
+              </button>
+
+              <Link
+                to="/"
+                className="w-full text-center bg-gray-100 text-coffee py-2 rounded-lg font-medium hover:bg-gray-200 transition-all duration-300 hover:scale-[1.02] active:scale-95 animate-rise delay-400"
+              >
+                Volver al Inicio
+              </Link>
+            </div>
           </form>
 
-          <p className="mt-6 text-center text-sm text-coffee/80">
+          <p className="mt-4 text-center text-sm text-coffee/80 animate-rise delay-500">
             ¿No tienes cuenta?{" "}
-            <a href="/registro" className="text-coffee font-medium hover:underline">
+            <Link 
+              to="/registro" 
+              className="text-coffee font-medium hover:underline transition-all duration-200"
+            >
               Regístrate aquí
-            </a>
+            </Link>
           </p>
         </div>
       </div>

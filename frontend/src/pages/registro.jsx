@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Registro = () => {
   const [formData, setFormData] = useState({
@@ -7,18 +8,18 @@ const Registro = () => {
     contrasena: "",
     rol: "",
   });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!Object.values(formData).every(Boolean)) {
-      alert("Por favor complete todos los campos");
-      return;
-    }
-
+    
     try {
       const response = await fetch("http://localhost:3001/auth/registro", {
         method: "POST",
@@ -29,22 +30,85 @@ const Registro = () => {
       });
 
       const data = await response.json();
-      if (response.ok) {
-        alert("Registro exitoso");
-        setFormData({ nombre: "", email: "", contrasena: "", rol: "" });
-      } else {
-        alert(data.message || "Error en el registro");
+      
+      if (!response.ok) {
+        let mensajeError = 'Error en el registro';
+        switch(data.tipo) {
+          case 'campos_vacios':
+            mensajeError = 'Todos los campos son obligatorios';
+            break;
+          case 'email_invalido':
+            mensajeError = 'Formato de email inválido';
+            break;
+          case 'usuario_existente':
+            mensajeError = 'El correo ya está registrado';
+            break;
+          case 'contrasena_debil':
+            mensajeError = 'La contraseña debe tener al menos 8 caracteres';
+            break;
+          default:
+            mensajeError = data.msg || 'Error desconocido';
+        }
+        setError(mensajeError);
+        return;
       }
+
+      setShowSuccess(true);
+      setTimeout(() => navigate("/"), 3000);
+
     } catch (error) {
+      setError('Error de conexión con el servidor');
       console.error("Error:", error);
-      alert("Error de conexión con el servidor");
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      {/* Modal de éxito */}
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-white p-8 rounded-xl text-center max-w-sm animate-scale-in">
+            <div className="mx-auto mb-4 w-16 h-16">
+              <svg
+                className="checkmark animate-check"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 52 52"
+              >
+                <circle
+                  className="checkmark__circle"
+                  fill="none"
+                  cx="26"
+                  cy="26"
+                  r="25"
+                  stroke="#4A2C2A"
+                  strokeWidth="2"
+                />
+                <path
+                  className="checkmark__check"
+                  fill="none"
+                  d="M14.1 27.2l7.1 7.2 16.7-16.8"
+                  stroke="#4A2C2A"
+                  strokeWidth="3"
+                />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-coffee mb-4">
+              ¡Registro Exitoso!
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Serás redirigido automáticamente al inicio
+            </p>
+            <Link
+              to="/"
+              className="bg-coffee text-white px-6 py-2 rounded-lg font-medium hover:bg-coffee/90 transition-colors"
+            >
+              Volver Ahora
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden">
-        {/* Sección de imagen */}
         <div className="relative h-32 bg-coffee">
           <img
             src="/img/cafe.jpg"
@@ -60,12 +124,17 @@ const Registro = () => {
           </div>
         </div>
 
-        {/* Formulario */}
         <div className="p-8">
-          <h2 className="text-2xl font-bold text-coffee text-center mb-6">
+          <h2 className="text-2xl font-bold text-coffee text-center mb-6 animate-slide-in-top">
             Crear Cuenta
           </h2>
           
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg animate-shake">
+              ⚠️ {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-coffee mb-1">
@@ -131,19 +200,28 @@ const Registro = () => {
               </select>
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-coffee text-white py-2 rounded-lg font-medium hover:bg-coffee/90 transition-colors"
-            >
-              Registrar cuenta
-            </button>
+            <div className="mt-6 flex flex-col gap-4">
+              <button
+                type="submit"
+                className="w-full bg-coffee text-white py-2 rounded-lg font-medium hover:bg-coffee/90 transition-colors animate-rise"
+              >
+                Registrar cuenta
+              </button>
+
+              <Link
+                to="/"
+                className="w-full text-center bg-gray-100 text-coffee py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors animate-rise delay-100"
+              >
+                Volver al Inicio
+              </Link>
+            </div>
           </form>
 
-          <p className="mt-6 text-center text-sm text-coffee/80">
+          <p className="mt-4 text-center text-sm text-coffee/80">
             ¿Ya tienes cuenta?{" "}
-            <a href="/login" className="text-coffee font-medium hover:underline">
+            <Link to="/login" className="text-coffee font-medium hover:underline">
               Iniciar sesión
-            </a>
+            </Link>
           </p>
         </div>
       </div>
