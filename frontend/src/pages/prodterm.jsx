@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Dashboard = () => {
+const ProductosTerminados = () => {
   const [userData, setUserData] = useState(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
@@ -74,57 +74,15 @@ const Dashboard = () => {
           </div>
         </div>
         {/* Estadísticas principales */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h3 className="mb-4 text-lg font-bold text-[#4A2C2A]">Materia Prima</h3>
-            <div className="h-32 rounded-lg bg-[#8FBC8F]/30 p-4">
-              <p className="text-3xl font-bold">120kg</p>
-              <p className="text-sm text-gray-600">Granos de café en stock</p>
-            </div>
-          </div>
 
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h3 className="mb-4 text-lg font-bold text-[#4A2C2A]">Productos Terminados</h3>
-            <div className="h-32 rounded-lg bg-[#8FBC8F]/30 p-4">
-              <p className="text-3xl font-bold">320</p>
-              <p className="text-sm text-gray-600">Paquetes listos</p>
-            </div>
-          </div>
 
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h3 className="mb-4 text-lg font-bold text-[#4A2C2A]">Alertas Activas</h3>
-            <div className="space-y-3">
-              <div className="rounded-lg bg-[#FFD700]/20 p-3">
-                <p className="font-medium text-[#FFD700]">Stock bajo</p>
-                <p className="text-sm">Bolsas de 1kg (50 unidades)</p>
-              </div>
-              <div className="rounded-lg bg-[#FF0000]/20 p-3">
-                <p className="font-medium text-[#FF0000]">Caducidad próxima</p>
-                <p className="text-sm">Lote #2023-10 (15 días)</p>
-              </div>
-            </div>
-          </div>
-        </div>
+
+
 
         
-
-        {/* Gráfico de ejemplo */}
-        <div className="mt-6 rounded-lg bg-white p-6 shadow">
-          <h3 className="mb-4 text-lg font-bold text-[#4A2C2A]">Producción Mensual</h3>
-          <div className="h-64 rounded-lg bg-[#8FBC8F]/30 p-4">
-            <div className="flex h-full items-center justify-center text-gray-400">
-              Gráfico de producción vs ventas
-            </div>
-          </div>
-        </div>
-
-        {/* Botón flotante */}
-        <button className="fixed bottom-8 right-8 rounded-full bg-[#4A2C2A] p-4 text-white shadow-lg hover:bg-[#3a231f]">
-          + Nuevo Lote
-        </button>
       </div>
     </div>
   );
 };
 
-export default Dashboard;
+export default ProductosTerminados;

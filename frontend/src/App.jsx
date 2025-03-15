@@ -6,6 +6,10 @@ import Login from "./pages/login";
 import TestPage from './pages/TestPage';
 import Dashboard from "./pages/dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MateriaPrima from './pages/matprima';
+import Produccion from './pages/prod';
+import ProductosTerminados from './pages/prodterm';
+import Ventas from './pages/ventas';
 
 function App() {
   return (
@@ -14,6 +18,12 @@ function App() {
       <Route path="/registro" element={<Registro />} />
       <Route path="/login" element={<Login />} />
       <Route path="/test" element={<TestPage />} />
+
+      <Route path="/matprima" element={<MateriaPrima />} />
+      <Route path="/prod" element={<Produccion />} />
+      <Route path="/prodterm" element={<ProductosTerminados />} />
+      <Route path="/ventas" element={<Ventas />} />
+
       
       {/* Ruta protegida */}
       <Route 
