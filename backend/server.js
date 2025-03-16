@@ -13,7 +13,11 @@ app.use(cookieParser());
 
 // Importar rutas
 const authRoutes = require("./src/routes/authroutes");
+const usuarioRoutes = require("./src/routes/usuarioRoutes"); // Añade esta línea
+
+// Registrar rutas
 app.use("/auth", authRoutes);
+app.use("/api", usuarioRoutes); // Añade esta línea
 
 app.get("/", (req, res) => {
   res.send("Servidor corriendo...");
