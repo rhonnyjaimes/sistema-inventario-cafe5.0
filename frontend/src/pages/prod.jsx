@@ -180,7 +180,7 @@ const Produccion = () => {
             </div>
           </div>
 
-          {/* Total en Producción Dinámico */}
+          {/* Total en Producción */}
           <div className="fixed bottom-0 left-64 right-0 bg-[#8FBC8F] z-10">
             <div className="p-4 shadow-lg">
               <div className="rounded-lg bg-white p-4 shadow">
