@@ -10,6 +10,7 @@ import MateriaPrima from './pages/matprima';
 import Produccion from './pages/prod';
 import ProductosTerminados from './pages/prodterm';
 import Ventas from './pages/ventas';
+import Usuarios from './pages/usuarios';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
       <Route path="/prod" element={<Produccion />} />
       <Route path="/prodterm" element={<ProductosTerminados />} />
       <Route path="/ventas" element={<Ventas />} />
+      <Route path="/usuarios" element={<Usuarios />} />
 
       
       {/* Ruta protegida */}
