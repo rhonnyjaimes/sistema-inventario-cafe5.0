@@ -1,5 +1,9 @@
 Sistema de Inventario para CAFÉ 5.0
 
+ENLACE DE GITHUB: https://github.com/rhonnyjaimes/sistema-inventario-cafe5.0/
+
+VIDEO EXPLICATIVO DEL PROGRAMA: https://youtu.be/MX3vqO-JsC8
+
 El presente informe detalla la instalación, funcionalidades y uso del sistema de inventario para CAFÉ 5.0 de José Ocanto,
 diseñado para optimizar la gestión de materias primas, producción, empaquetado y distribución a nivel nacional.
 
