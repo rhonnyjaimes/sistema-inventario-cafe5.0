@@ -15,12 +15,14 @@ app.use(cookieParser());
 const authRoutes = require("./src/routes/authroutes");
 const usuarioRoutes = require("./src/routes/usuarioRoutes"); 
 const proveedorRoutes = require('./src/routes/proveedorroutes');
+const granoRoutes = require('./src/routes/granoroutes');
 
 
 // Registrar rutas
 app.use("/auth", authRoutes);
 app.use("/api", usuarioRoutes); 
 app.use("/api", proveedorRoutes); 
+app.use("/api", granoRoutes); 
 
 
 app.get("/", (req, res) => {

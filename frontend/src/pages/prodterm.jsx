@@ -70,7 +70,9 @@ const ProductosTerminados = () => {
             { name: 'Materia Prima', path: '/matprima' },
             { name: 'Producción', path: '/prod' },
             { name: 'Productos Terminados', path: '/prodterm' },
-            { name: 'Ventas', path: '/ventas' }
+            { name: 'Ventas', path: '/ventas' },
+            { name: 'Gestion de Usuarios', path: '/usuarios' }
+
           ].map((item) => (
             <button
               key={item.name}
