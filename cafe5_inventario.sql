@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 23-02-2025 a las 20:31:27
+-- Tiempo de generación: 17-03-2025 a las 05:53:42
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -83,12 +83,24 @@ DELIMITER ;
 
 CREATE TABLE `granos` (
   `id_grano` int(11) NOT NULL,
-  `origen` varchar(50) NOT NULL,
-  `variedad` varchar(50) NOT NULL,
+  `origen` varchar(100) NOT NULL,
   `cantidad_kg` decimal(10,2) NOT NULL,
+  `fecha_despacho` date NOT NULL,
   `fecha_caducidad` date NOT NULL,
-  `id_proveedor` int(11) DEFAULT NULL
+  `id_proveedor` int(11) NOT NULL,
+  `lote_pagado` tinyint(1) NOT NULL DEFAULT 0,
+  `metodo_pago` varchar(50) NOT NULL DEFAULT 'Pago Pendiente'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `granos`
+--
+
+INSERT INTO `granos` (`id_grano`, `origen`, `cantidad_kg`, `fecha_despacho`, `fecha_caducidad`, `id_proveedor`, `lote_pagado`, `metodo_pago`) VALUES
+(6, 'Colombiaaa', 500.50, '2024-02-29', '2024-08-31', 1, 1, 'Transferencia Bancaria'),
+(7, 'Brasil', 1000.00, '2024-02-15', '2024-08-15', 2, 0, 'Pago Pendiente'),
+(8, 'Santa Ana', 10.00, '2025-03-10', '2026-03-30', 12, 0, 'Transferencia'),
+(9, 'Bogota', 20.00, '2025-03-17', '2028-05-15', 1, 0, 'Efectivo');
 
 -- --------------------------------------------------------
 
@@ -159,9 +171,18 @@ CREATE TABLE `productosterminados` (
 CREATE TABLE `proveedores` (
   `id_proveedor` int(11) NOT NULL,
   `nombre` varchar(100) NOT NULL,
-  `contacto` varchar(100) NOT NULL,
-  `historial_compras` text DEFAULT NULL
+  `telefono1` varchar(15) NOT NULL,
+  `telefono2` varchar(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `proveedores`
+--
+
+INSERT INTO `proveedores` (`id_proveedor`, `nombre`, `telefono1`, `telefono2`) VALUES
+(1, 'Café Colombia S.A.', '+58 412-1234567', '+58 412-7654321'),
+(2, 'Brasil Coffee Co.', '+58 412-5551234', '+58 412-5555678'),
+(12, 'Café Santa Ana', '+58 412-1234567', '+58 412-7654321');
 
 -- --------------------------------------------------------
 
@@ -182,10 +203,9 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombre`, `email`, `contrasena`, `rol`) VALUES
-(1, 'Juan Pérez', 'juan@example.com', '$2b$10$SPM3KORUQVQfZlc55bS5ue4vh7.PhaGAi.n2WxeUu/mNPSBEodZFO', 'operario'),
-(2, 'Prueba', 'prueba@gmail.com', '$2b$10$Prf12PMXUNQLBJYZT10qRuYxQWSoFiC1N94nL/AeqXsZxuVkMTxVi', 'supervisor'),
-(4, 'Prueba', 'rhonnyjaimes2002@gmail.com', '$2b$10$K7r8QmTAA.pUvlvY8wO/leGvMFJWFXAbse5w6LBCIRPybUcA0142i', 'operario'),
-(5, 'PRUEBAAA', 'pruebAAAAAa@gmail.com', '$2b$10$t002etZog2DRZaphKpim7./FOGkEpFFrGPMYyILw8siVKC6OK6ROy', 'supervisor');
+(6, 'Juan', 'juan@juan.com', '$2b$10$ZDLPugKQf.bE7QlXEWP9UuufCiufBHqnM5rrx0kGXPCeeF5m62o/2', 'gerente'),
+(7, 'Admin', 'admincafe@admin.com', '$2b$10$o4cJ3a7Tw9AB78d7oiyKS.6dNd98dQhRTNX2PpJ3hzzFsvb8kyRhe', 'gerente'),
+(8, 'Operario', 'operario@cafe.com', '$2b$10$HGfzQRbXu9FhuP9Cmp4PH.pXKVZWliuG647K5x.JXNEGFg0sBCe2q', 'operario');
 
 --
 -- Índices para tablas volcadas
@@ -286,7 +306,7 @@ ALTER TABLE `empaques`
 -- AUTO_INCREMENT de la tabla `granos`
 --
 ALTER TABLE `granos`
-  MODIFY `id_grano` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_grano` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `lotesmolido`
@@ -316,13 +336,13 @@ ALTER TABLE `productosterminados`
 -- AUTO_INCREMENT de la tabla `proveedores`
 --
 ALTER TABLE `proveedores`
-  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Restricciones para tablas volcadas
@@ -338,7 +358,7 @@ ALTER TABLE `empaques`
 -- Filtros para la tabla `granos`
 --
 ALTER TABLE `granos`
-  ADD CONSTRAINT `granos_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`);
+  ADD CONSTRAINT `granos_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `lotesmolido`
