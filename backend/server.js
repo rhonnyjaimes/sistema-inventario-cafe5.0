@@ -17,6 +17,7 @@ const usuarioRoutes = require("./src/routes/usuarioRoutes");
 const proveedorRoutes = require('./src/routes/proveedorroutes');
 const granoRoutes = require('./src/routes/granoroutes');
 const lotetostadoRoutes = require('./src/routes/lotetostadoroutes');
+const loteMolidoRoutes = require('./src/routes/lotemolidoroutes');
 
 
 
@@ -25,7 +26,9 @@ app.use("/auth", authRoutes);
 app.use("/api", usuarioRoutes); 
 app.use("/api", proveedorRoutes); 
 app.use("/api", granoRoutes); 
-app.use("/api", lotetostadoRoutes); 
+app.use("/api", lotetostadoRoutes);
+app.use('/api', loteMolidoRoutes);
+
 
 app.get("/", (req, res) => {
   res.send("Servidor corriendo...");
