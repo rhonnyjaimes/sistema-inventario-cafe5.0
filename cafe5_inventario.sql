@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 17-03-2025 a las 05:53:42
+-- Tiempo de generación: 25-03-2025 a las 04:56:23
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -100,7 +100,8 @@ INSERT INTO `granos` (`id_grano`, `origen`, `cantidad_kg`, `fecha_despacho`, `fe
 (6, 'Colombiaaa', 500.50, '2024-02-29', '2024-08-31', 1, 1, 'Transferencia Bancaria'),
 (7, 'Brasil', 1000.00, '2024-02-15', '2024-08-15', 2, 0, 'Pago Pendiente'),
 (8, 'Santa Ana', 10.00, '2025-03-10', '2026-03-30', 12, 0, 'Transferencia'),
-(9, 'Bogota', 20.00, '2025-03-17', '2028-05-15', 1, 0, 'Efectivo');
+(9, 'Bogota', 20.00, '2025-03-17', '2028-05-15', 1, 0, 'Efectivo'),
+(10, 'Trujillo', 30.00, '2025-03-17', '2025-12-11', 12, 1, 'Efectivo');
 
 -- --------------------------------------------------------
 
@@ -125,12 +126,20 @@ CREATE TABLE `lotesmolido` (
 CREATE TABLE `lotestostado` (
   `id_lote_tostado` int(11) NOT NULL,
   `fecha` date NOT NULL,
-  `temperatura` decimal(5,2) NOT NULL,
-  `perdida_peso` decimal(5,2) NOT NULL,
+  `temperatura` decimal(10,2) NOT NULL,
   `peso_inicial_kg` decimal(10,2) NOT NULL,
-  `peso_final_kg` decimal(10,2) GENERATED ALWAYS AS (`peso_inicial_kg` * (1 - `perdida_peso` / 100)) STORED,
+  `perdida_peso` decimal(10,2) GENERATED ALWAYS AS (`peso_inicial_kg` - `peso_final_kg`) VIRTUAL,
+  `peso_final_kg` decimal(10,2) NOT NULL,
   `id_grano` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `lotestostado`
+--
+
+INSERT INTO `lotestostado` (`id_lote_tostado`, `fecha`, `temperatura`, `peso_inicial_kg`, `peso_final_kg`, `id_grano`) VALUES
+(2, '2025-12-30', 200.00, 150.00, 120.00, 7),
+(3, '2025-03-20', 180.00, 200.00, 185.00, 6);
 
 -- --------------------------------------------------------
 
@@ -204,8 +213,8 @@ CREATE TABLE `usuarios` (
 
 INSERT INTO `usuarios` (`id_usuario`, `nombre`, `email`, `contrasena`, `rol`) VALUES
 (6, 'Juan', 'juan@juan.com', '$2b$10$ZDLPugKQf.bE7QlXEWP9UuufCiufBHqnM5rrx0kGXPCeeF5m62o/2', 'gerente'),
-(7, 'Admin', 'admincafe@admin.com', '$2b$10$o4cJ3a7Tw9AB78d7oiyKS.6dNd98dQhRTNX2PpJ3hzzFsvb8kyRhe', 'gerente'),
-(8, 'Operario', 'operario@cafe.com', '$2b$10$HGfzQRbXu9FhuP9Cmp4PH.pXKVZWliuG647K5x.JXNEGFg0sBCe2q', 'operario');
+(8, 'Operario', 'operario@cafe.com', '$2b$10$HGfzQRbXu9FhuP9Cmp4PH.pXKVZWliuG647K5x.JXNEGFg0sBCe2q', 'operario'),
+(9, 'Admin', 'admin@admin.com', '$2b$10$lnr9rBJESnXCOJE9BZ7Xu.JpzVr.OVCtrZcj3MBAbICZXKSVwEJ/C', 'gerente');
 
 --
 -- Índices para tablas volcadas
@@ -306,7 +315,7 @@ ALTER TABLE `empaques`
 -- AUTO_INCREMENT de la tabla `granos`
 --
 ALTER TABLE `granos`
-  MODIFY `id_grano` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_grano` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `lotesmolido`
@@ -318,7 +327,7 @@ ALTER TABLE `lotesmolido`
 -- AUTO_INCREMENT de la tabla `lotestostado`
 --
 ALTER TABLE `lotestostado`
-  MODIFY `id_lote_tostado` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_lote_tostado` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `pedidos`
@@ -342,7 +351,7 @@ ALTER TABLE `proveedores`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Restricciones para tablas volcadas
