@@ -228,6 +228,7 @@ const Produccion = () => {
                 <th className="p-3 text-center text-sm font-bold">Peso Inicial</th>
                 <th className="p-3 text-center text-sm font-bold">Pérdida de Peso</th>
                 <th className="p-3 text-center text-sm font-bold">Peso Final</th>
+                <th className="p-3 text-center text-sm font-bold">ID de Grano</th>
                 <th className="p-3 text-center text-sm font-bold">Acciones</th>
               </tr>
             </thead>
@@ -241,6 +242,8 @@ const Produccion = () => {
                   <td className="p-3 text-center text-sm">{lote.peso_inicial_kg}kg</td>
                   <td className="p-3 text-center text-sm">{lote.perdida_peso}kg</td>
                   <td className="p-3 text-center text-sm">{lote.peso_final_kg}kg</td>
+                  <td className="p-3 text-sm font-medium text-[#4A2C2A]">{lote.id_grano}</td>
+
                   <td className="p-3 text-center">
                     <button className="text-[#4A2C2A] hover:text-[#3a231f]">
                       Editar
