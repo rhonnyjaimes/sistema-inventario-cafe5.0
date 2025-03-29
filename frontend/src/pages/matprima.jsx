@@ -391,6 +391,7 @@ const MateriaPrima = () => {
                   <option value="Efectivo">Efectivo</option>
                   <option value="Transferencia">Transferencia</option>
                   <option value="Cheque">Cheque</option>
+                  <option value="Pagp Pendiente">Pago Pendiente</option>
                 </select>
               </div>
 

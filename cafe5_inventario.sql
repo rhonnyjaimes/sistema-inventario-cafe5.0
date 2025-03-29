@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 25-03-2025 a las 04:56:23
+-- Tiempo de generación: 30-03-2025 a las 00:14:18
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -24,20 +24,6 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `alertas`
---
-
-CREATE TABLE `alertas` (
-  `id_alerta` int(11) NOT NULL,
-  `tipo` enum('stock_bajo','caducidad_proxima') NOT NULL,
-  `mensaje` text NOT NULL,
-  `fecha` date NOT NULL,
-  `resuelta` tinyint(1) DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Estructura de tabla para la tabla `clientes`
 --
 
@@ -46,34 +32,6 @@ CREATE TABLE `clientes` (
   `nombre` varchar(100) NOT NULL,
   `contacto` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `empaques`
---
-
-CREATE TABLE `empaques` (
-  `id_empaque` int(11) NOT NULL,
-  `tipo` varchar(50) NOT NULL,
-  `material` varchar(50) NOT NULL,
-  `stock` int(11) NOT NULL,
-  `stock_minimo` int(11) NOT NULL,
-  `id_proveedor` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Disparadores `empaques`
---
-DELIMITER $$
-CREATE TRIGGER `alerta_stock_bajo` AFTER UPDATE ON `empaques` FOR EACH ROW BEGIN
-  IF NEW.stock < NEW.stock_minimo THEN
-    INSERT INTO Alertas (tipo, mensaje, fecha)
-    VALUES ('stock_bajo', CONCAT('¡Stock crítico en empaque ', NEW.id_empaque, '! Contactar al proveedor.'), CURDATE());
-  END IF;
-END
-$$
-DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -97,11 +55,9 @@ CREATE TABLE `granos` (
 --
 
 INSERT INTO `granos` (`id_grano`, `origen`, `cantidad_kg`, `fecha_despacho`, `fecha_caducidad`, `id_proveedor`, `lote_pagado`, `metodo_pago`) VALUES
-(6, 'Colombiaaa', 500.50, '2024-02-29', '2024-08-31', 1, 1, 'Transferencia Bancaria'),
-(7, 'Brasil', 1000.00, '2024-02-15', '2024-08-15', 2, 0, 'Pago Pendiente'),
-(8, 'Santa Ana', 10.00, '2025-03-10', '2026-03-30', 12, 0, 'Transferencia'),
-(9, 'Bogota', 20.00, '2025-03-17', '2028-05-15', 1, 0, 'Efectivo'),
-(10, 'Trujillo', 30.00, '2025-03-17', '2025-12-11', 12, 1, 'Efectivo');
+(6, 'Colombiaaa', 50.00, '2024-02-29', '2024-08-31', 1, 1, 'Transferencia Bancaria'),
+(11, 'Colombia', 0.00, '2025-03-25', '2025-12-31', 1, 0, 'Pago Pendiente'),
+(12, 'Valera', 50.00, '2025-03-25', '2025-07-31', 12, 0, 'Efectivo');
 
 -- --------------------------------------------------------
 
@@ -111,11 +67,46 @@ INSERT INTO `granos` (`id_grano`, `origen`, `cantidad_kg`, `fecha_despacho`, `fe
 
 CREATE TABLE `lotesmolido` (
   `id_lote_molido` int(11) NOT NULL,
-  `tipo_molido` enum('fino','medio','grueso') NOT NULL,
+  `tipo_molido` varchar(20) NOT NULL CHECK (`tipo_molido` in ('fino','medio','grueso')),
   `cantidad_procesada_kg` decimal(10,2) NOT NULL,
   `fecha` date NOT NULL,
+  `tiempo_produccion` time NOT NULL,
   `id_lote_tostado` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `lotesmolido`
+--
+
+INSERT INTO `lotesmolido` (`id_lote_molido`, `tipo_molido`, `cantidad_procesada_kg`, `fecha`, `tiempo_produccion`, `id_lote_tostado`) VALUES
+(3, 'medio', 0.00, '2025-03-25', '01:30:00', 7);
+
+--
+-- Disparadores `lotesmolido`
+--
+DELIMITER $$
+CREATE TRIGGER `before_lotesmolido_insert` BEFORE INSERT ON `lotesmolido` FOR EACH ROW BEGIN
+    DECLARE stock_tostado DECIMAL(10,2);
+
+    -- Obtener stock del lote tostado
+    SELECT cantidad_disponible_kg 
+    INTO stock_tostado
+    FROM lotestostado 
+    WHERE id_lote_tostado = NEW.id_lote_tostado;
+
+    -- Validar stock suficiente
+    IF stock_tostado < NEW.cantidad_procesada_kg THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Stock insuficiente en lote tostado para este molido';
+    END IF;
+
+    -- Actualizar stock de lote tostado
+    UPDATE lotestostado 
+    SET cantidad_disponible_kg = cantidad_disponible_kg - NEW.cantidad_procesada_kg
+    WHERE id_lote_tostado = NEW.id_lote_tostado;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -130,6 +121,8 @@ CREATE TABLE `lotestostado` (
   `peso_inicial_kg` decimal(10,2) NOT NULL,
   `perdida_peso` decimal(10,2) GENERATED ALWAYS AS (`peso_inicial_kg` - `peso_final_kg`) VIRTUAL,
   `peso_final_kg` decimal(10,2) NOT NULL,
+  `cantidad_disponible_kg` decimal(10,2) NOT NULL,
+  `fecha_caducidad` date NOT NULL,
   `id_grano` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -137,9 +130,42 @@ CREATE TABLE `lotestostado` (
 -- Volcado de datos para la tabla `lotestostado`
 --
 
-INSERT INTO `lotestostado` (`id_lote_tostado`, `fecha`, `temperatura`, `peso_inicial_kg`, `peso_final_kg`, `id_grano`) VALUES
-(2, '2025-12-30', 200.00, 150.00, 120.00, 7),
-(3, '2025-03-20', 180.00, 200.00, 185.00, 6);
+INSERT INTO `lotestostado` (`id_lote_tostado`, `fecha`, `temperatura`, `peso_inicial_kg`, `peso_final_kg`, `cantidad_disponible_kg`, `fecha_caducidad`, `id_grano`) VALUES
+(6, '2025-03-25', 200.00, 80.00, 45.00, 45.00, '2024-08-31', 6),
+(7, '2025-03-25', 200.00, 100.00, 80.00, 60.00, '2025-12-31', 11),
+(8, '2025-03-25', 200.00, 50.00, 45.00, 45.00, '2024-08-31', 6);
+
+--
+-- Disparadores `lotestostado`
+--
+DELIMITER $$
+CREATE TRIGGER `after_lotestostado_insert` BEFORE INSERT ON `lotestostado` FOR EACH ROW BEGIN
+    DECLARE stock_grano DECIMAL(10,2);
+    DECLARE fecha_cad_grano DATE;
+
+    -- Obtener stock y fecha de caducidad del grano
+    SELECT cantidad_kg, fecha_caducidad 
+    INTO stock_grano, fecha_cad_grano
+    FROM granos 
+    WHERE id_grano = NEW.id_grano;
+
+    -- Validar stock suficiente
+    IF stock_grano < NEW.peso_inicial_kg THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Stock insuficiente en granos para este lote tostado';
+    END IF;
+
+    -- Establecer valores automáticos
+    SET NEW.fecha_caducidad = COALESCE(fecha_cad_grano, CURDATE() + INTERVAL 1 YEAR);
+    SET NEW.cantidad_disponible_kg = NEW.peso_final_kg;
+    
+    -- Actualizar stock de granos
+    UPDATE granos 
+    SET cantidad_kg = cantidad_kg - NEW.peso_inicial_kg
+    WHERE id_grano = NEW.id_grano;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -164,12 +190,60 @@ CREATE TABLE `pedidos` (
 
 CREATE TABLE `productosterminados` (
   `id_producto` int(11) NOT NULL,
-  `presentacion` enum('250g','500g','1kg') NOT NULL,
-  `cantidad_paquetes` int(11) NOT NULL,
-  `fecha_vencimiento` date NOT NULL,
   `id_lote_molido` int(11) NOT NULL,
-  `id_empaque` int(11) NOT NULL
+  `presentacion` enum('0.25','0.5','1') NOT NULL,
+  `cantidad_paquetes` int(11) NOT NULL,
+  `fecha_vencimiento` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `productosterminados`
+--
+
+INSERT INTO `productosterminados` (`id_producto`, `id_lote_molido`, `presentacion`, `cantidad_paquetes`, `fecha_vencimiento`) VALUES
+(1, 3, '0.5', 10, '2025-12-31');
+
+--
+-- Disparadores `productosterminados`
+--
+DELIMITER $$
+CREATE TRIGGER `before_productoterminado_insert` BEFORE INSERT ON `productosterminados` FOR EACH ROW BEGIN
+    DECLARE kg_necesarios DECIMAL(10,2);
+    DECLARE stock_actual DECIMAL(10,2);
+    DECLARE fecha_caducidad_tostado DATE;
+    
+    -- Obtener fecha de caducidad del lote tostado relacionado
+    SELECT lt.fecha_caducidad 
+    INTO fecha_caducidad_tostado
+    FROM lotesmolido lm
+    JOIN lotestostado lt ON lm.id_lote_tostado = lt.id_lote_tostado
+    WHERE lm.id_lote_molido = NEW.id_lote_molido;
+    
+    -- Establecer fecha de vencimiento
+    SET NEW.fecha_vencimiento = COALESCE(fecha_caducidad_tostado, DATE_ADD(CURDATE(), INTERVAL 6 MONTH));
+    
+    -- Calcular kg necesarios
+    SET kg_necesarios = NEW.cantidad_paquetes * CAST(NEW.presentacion AS DECIMAL(3,2));
+    
+    -- Obtener stock actual del lote molido
+    SELECT cantidad_procesada_kg 
+    INTO stock_actual 
+    FROM lotesmolido 
+    WHERE id_lote_molido = NEW.id_lote_molido;
+    
+    -- Validar stock
+    IF stock_actual < kg_necesarios THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Stock insuficiente en lote molido';
+    END IF;
+    
+    -- Actualizar stock
+    UPDATE lotesmolido 
+    SET cantidad_procesada_kg = cantidad_procesada_kg - kg_necesarios
+    WHERE id_lote_molido = NEW.id_lote_molido;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -221,23 +295,10 @@ INSERT INTO `usuarios` (`id_usuario`, `nombre`, `email`, `contrasena`, `rol`) VA
 --
 
 --
--- Indices de la tabla `alertas`
---
-ALTER TABLE `alertas`
-  ADD PRIMARY KEY (`id_alerta`);
-
---
 -- Indices de la tabla `clientes`
 --
 ALTER TABLE `clientes`
   ADD PRIMARY KEY (`id_cliente`);
-
---
--- Indices de la tabla `empaques`
---
-ALTER TABLE `empaques`
-  ADD PRIMARY KEY (`id_empaque`),
-  ADD KEY `id_proveedor` (`id_proveedor`);
 
 --
 -- Indices de la tabla `granos`
@@ -273,8 +334,7 @@ ALTER TABLE `pedidos`
 --
 ALTER TABLE `productosterminados`
   ADD PRIMARY KEY (`id_producto`),
-  ADD KEY `id_lote_molido` (`id_lote_molido`),
-  ADD KEY `id_empaque` (`id_empaque`);
+  ADD KEY `id_lote_molido` (`id_lote_molido`);
 
 --
 -- Indices de la tabla `proveedores`
@@ -294,40 +354,28 @@ ALTER TABLE `usuarios`
 --
 
 --
--- AUTO_INCREMENT de la tabla `alertas`
---
-ALTER TABLE `alertas`
-  MODIFY `id_alerta` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `clientes`
 --
 ALTER TABLE `clientes`
   MODIFY `id_cliente` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `empaques`
---
-ALTER TABLE `empaques`
-  MODIFY `id_empaque` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `granos`
 --
 ALTER TABLE `granos`
-  MODIFY `id_grano` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id_grano` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `lotesmolido`
 --
 ALTER TABLE `lotesmolido`
-  MODIFY `id_lote_molido` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_lote_molido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `lotestostado`
 --
 ALTER TABLE `lotestostado`
-  MODIFY `id_lote_tostado` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_lote_tostado` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `pedidos`
@@ -339,7 +387,7 @@ ALTER TABLE `pedidos`
 -- AUTO_INCREMENT de la tabla `productosterminados`
 --
 ALTER TABLE `productosterminados`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`
@@ -356,12 +404,6 @@ ALTER TABLE `usuarios`
 --
 -- Restricciones para tablas volcadas
 --
-
---
--- Filtros para la tabla `empaques`
---
-ALTER TABLE `empaques`
-  ADD CONSTRAINT `empaques_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`);
 
 --
 -- Filtros para la tabla `granos`
@@ -392,8 +434,7 @@ ALTER TABLE `pedidos`
 -- Filtros para la tabla `productosterminados`
 --
 ALTER TABLE `productosterminados`
-  ADD CONSTRAINT `productosterminados_ibfk_1` FOREIGN KEY (`id_lote_molido`) REFERENCES `lotesmolido` (`id_lote_molido`),
-  ADD CONSTRAINT `productosterminados_ibfk_2` FOREIGN KEY (`id_empaque`) REFERENCES `empaques` (`id_empaque`);
+  ADD CONSTRAINT `productosterminados_ibfk_1` FOREIGN KEY (`id_lote_molido`) REFERENCES `lotesmolido` (`id_lote_molido`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
