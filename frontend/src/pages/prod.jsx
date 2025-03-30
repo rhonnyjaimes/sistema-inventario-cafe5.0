@@ -4,52 +4,92 @@ import { useNavigate } from 'react-router-dom';
 const Produccion = () => {
   const [userData, setUserData] = useState(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showNewLoteModal, setShowNewLoteModal] = useState(false);
+  const [lotesTostados, setLotesTostados] = useState([]);
+  const [granos, setGranos] = useState([]);
+  const [newLote, setNewLote] = useState({
+    fecha: '',
+    temperatura: '',
+    peso_inicial_kg: '',
+    id_grano: ''
+  });
   const navigate = useNavigate();
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUser = JSON.parse(localStorage.getItem('user'));
     
-    if (!token || !storedUser) navigate('/login');
-    else setUserData(storedUser);
+    if (!token || !storedUser) {
+      navigate('/login');
+    } else {
+      setUserData(storedUser);
+      fetchData(token);
+    }
   }, [navigate]);
 
-  const handleLogout = () => {
-    setIsLoggingOut(true);
-    setTimeout(() => {
-      localStorage.clear();
-      navigate('/login');
-    }, 500); // Duración de la animación
+  const fetchData = async (token) => {
+    try {
+      const [lotesRes, granosRes] = await Promise.all([
+        fetch('http://localhost:3001/api/lotestostados', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('http://localhost:3001/api/granos', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ]);
+
+      const lotesData = await lotesRes.json();
+      const granosData = await granosRes.json();
+
+      setLotesTostados(lotesData);
+      setGranos(granosData.filter(g => g.cantidad_kg > 0));
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
   };
 
+  const handleCreateLote = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const selectedGrano = granos.find(g => g.id_grano === newLote.id_grano);
 
-  const [produccionType, setProduccionType] = useState('tostado');
-  const [producciones, setProducciones] = useState([
-    {
-      id: 1,
-      produccion: "Productos Terminados",
-      lote: "0011",
-      fecha: "2/2/2025 7:35 PM",
-      temperatura: "---°",
-      perdida: "---",
-      tiempo: "1 hr",
-      acciones: "Editar"
+      if (selectedGrano.cantidad_kg < newLote.peso_inicial_kg) {
+        alert('Stock insuficiente en el grano seleccionado');
+        return;
+      }
+
+      const response = await fetch('http://localhost:3001/api/lotestostados', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newLote)
+      });
+
+      if (!response.ok) throw new Error('Error al crear lote');
+
+      const createdLote = await response.json();
+      setLotesTostados([...lotesTostados, createdLote]);
+      setShowNewLoteModal(false);
+    } catch (error) {
+      console.error('Error:', error);
     }
-  ]);
+  };
 
-  // Estado para paginación
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-
-  // Calcular totales
-  const totalProduccion = producciones.length;
-  const totalTiempo = producciones.reduce((acc, curr) => acc + parseInt(curr.tiempo), 0);
-  const promedioPerdida = producciones.reduce((acc, curr) => acc + (curr.perdida === '---' ? 0 : parseFloat(curr.perdida)), 0) / producciones.length;
+  const totalKg = lotesTostados.reduce((acc, lote) => {
+    return acc + parseFloat(lote.peso_final_kg || 0);
+  }, 0);
+  const perdidaPromedio = lotesTostados.length > 0 
+  ? (lotesTostados.reduce((acc, lote) => acc + parseFloat(lote.perdida_peso || 0), 0) / lotesTostados.length) 
+  : 0;
 
   if (!userData) return <div className="p-4 text-gray-600">Cargando...</div>;
 
   return (
     <div className="min-h-screen bg-[#8FBC8F] font-sans">
-      {/* Sidebar con animación */}
+      {/* Sidebar */}
       <div className={`fixed left-0 top-0 h-full w-64 bg-[#4A2C2A] p-4 ${isLoggingOut ? 'animate-slide-out-left' : 'animate-slide-in-left'}`}>
         <div className="mb-8 flex items-center gap-4 border-b border-[#8FBC8F] pb-4">
           <img 
@@ -68,20 +108,90 @@ const Produccion = () => {
             { name: 'Productos Terminados', path: '/prodterm' },
             { name: 'Ventas', path: '/ventas' },
             { name: 'Gestion de Usuarios', path: '/usuarios' }
-
           ].map((item) => (
             <button
               key={item.name}
               onClick={() => navigate(item.path)}
-              className="w-full rounded-lg p-3 text-left text-white hover:bg-[#8FBC8F]/20 hover:transition-colors duration-200"
+              className="w-full rounded-lg p-3 text-left text-white hover:bg-[#8FBC8F]/20 transition-colors duration-200"
             >
               {item.name}
             </button>
           ))}
-        </nav>      
+        </nav>
       </div>
 
-      {/* Main Content con animación */}
+      {/* Modal para nuevo lote */}
+      {showNewLoteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Nuevo Lote Tostado</h2>
+            <form onSubmit={handleCreateLote}>
+              <div className="mb-4">
+                <label>Grano:</label>
+                <select
+                  className="w-full p-2 border rounded"
+                  onChange={(e) => setNewLote({...newLote, id_grano: e.target.value})}
+                  required
+                >
+                  <option value="">Seleccionar grano</option>
+                  {granos.map(grano => (
+                    <option key={grano.id_grano} value={grano.id_grano}>
+                      {grano.origen} - {grano.cantidad_kg}kg
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="mb-4">
+                <label>Peso Inicial (kg):</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="w-full p-2 border rounded"
+                  onChange={(e) => setNewLote({...newLote, peso_inicial_kg: e.target.value})}
+                  required
+                />
+              </div>
+
+              <div className="mb-4">
+                <label>Temperatura (°C):</label>
+                <input
+                  type="number"
+                  className="w-full p-2 border rounded"
+                  onChange={(e) => setNewLote({...newLote, temperatura: e.target.value})}
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="bg-gray-500 text-white px-4 py-2 rounded"
+                  onClick={() => setShowNewLoteModal(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="bg-[#4A2C2A] text-white px-4 py-2 rounded"
+                >
+                  Crear
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Botón flotante */}
+      <button 
+        onClick={() => setShowNewLoteModal(true)}
+        className="fixed bottom-8 right-8 bg-[#4A2C2A] text-white p-4 rounded-full shadow-lg hover:bg-[#3a231f] transition-all z-40"
+      >
+        + Nuevo Lote
+      </button>
+
+      {/* Main Content */}
       <div className={`ml-64 p-6 ${isLoggingOut ? 'animate-fade-out' : 'animate-fade-in'}`}>
         {/* Header */}
         <div className="mb-8 flex items-center justify-between rounded-lg bg-white p-4 shadow">
@@ -92,121 +202,72 @@ const Produccion = () => {
               <p className="text-sm text-gray-600">{userData.email}</p>
             </div>
             <button
-              onClick={handleLogout}
+              onClick={() => {
+                setIsLoggingOut(true);
+                setTimeout(() => {
+                  localStorage.clear();
+                  navigate('/login');
+                }, 500);
+              }}
               className="rounded-lg bg-[#4A2C2A] px-4 py-2 text-white hover:bg-[#3a231f] transition-all duration-300"
             >
               Cerrar Sesión
             </button>
           </div>
         </div>
-        {/* Estadísticas principales */}
-          <div className="space-y-6">
 
-          {/* Selector de Tipo de Producción */}
-
-          <div className="rounded-lg bg-white p-4 shadow flex justify-between items-center w-64">
-            <div className="w-48">
-              <h2 className="text-lg font-semibold text-[#4A2C2A] mb-2">TIPO DE PRODUCCIÓN</h2>
-              <select 
-                value={produccionType}
-                onChange={(e) => setProduccionType(e.target.value)}
-                className="w-full p-2 border rounded bg-white text-sm"
-              >
-                <option value="tostado">Tostado</option>
-                <option value="molido">Molido</option>
-              </select>
-            </div>
-          </div>
-          
-          {/* Tabla */}
-          <div className="table-container rounded-lg bg-white shadow overflow-hidden">
+        {/* Tabla de producción */}
+        <div className="rounded-lg bg-white shadow overflow-hidden">
           <table className="w-full border-collapse">
-              <thead className="bg-white text-[#4A2C2A]">
-                <tr>
-                  <th className="p-3 text-left text-sm font-bold">Producción</th>
-                  <th className="p-3 text-left text-sm font-bold">ID de Lote</th>
-                  <th className="p-3 text-left text-sm font-bold">Fecha</th>
-                  <th className="p-3 text-center text-sm font-bold">Temperatura</th>
-                  <th className="p-3 text-center text-sm font-bold">Pérdida de Peso</th>
-                  <th className="p-3 text-center text-sm font-bold">Tiempo</th>
-                  <th className="p-3 text-center text-sm font-bold">Acciones</th>
+            <thead className="bg-[#4A2C2A] text-white">
+              <tr>
+                <th className="p-3 text-left text-sm font-bold">Producción</th>
+                <th className="p-3 text-left text-sm font-bold">ID de Lote</th>
+                <th className="p-3 text-left text-sm font-bold">Fecha</th>
+                <th className="p-3 text-center text-sm font-bold">Temperatura</th>
+                <th className="p-3 text-center text-sm font-bold">Peso Inicial</th>
+                <th className="p-3 text-center text-sm font-bold">Pérdida de Peso</th>
+                <th className="p-3 text-center text-sm font-bold">Peso Final</th>
+                <th className="p-3 text-center text-sm font-bold">ID de Grano</th>
+                <th className="p-3 text-center text-sm font-bold">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lotesTostados.map((lote) => (
+                <tr key={lote.id_lote_tostado} className="border-b hover:bg-gray-50">
+                  <td className="p-3 text-sm">Lote Tostado</td>
+                  <td className="p-3 text-sm font-medium text-[#4A2C2A]">{lote.id_lote_tostado}</td>
+                  <td className="p-3 text-sm">{new Date(lote.fecha).toLocaleDateString()}</td>
+                  <td className="p-3 text-center text-sm">{lote.temperatura}°C</td>
+                  <td className="p-3 text-center text-sm">{lote.peso_inicial_kg}kg</td>
+                  <td className="p-3 text-center text-sm">{lote.perdida_peso}kg</td>
+                  <td className="p-3 text-center text-sm">{lote.peso_final_kg}kg</td>
+                  <td className="p-3 text-sm font-medium text-[#4A2C2A]">{lote.id_grano}</td>
+
+                  <td className="p-3 text-center">
+                    <button className="text-[#4A2C2A] hover:text-[#3a231f]">
+                      Editar
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {producciones.map((item, index) => (
-                  <tr key={index} className="border-b hover:bg-gray-50">
-                    <td className="p-3 text-sm">{item.produccion}</td>
-                    <td className="p-3 text-sm font-medium text-[#4A2C2A]">{item.lote}</td>
-                    <td className="p-3 text-sm">{item.fecha}</td>
-                    <td className="p-3 text-center text-sm">{item.temperatura}</td>
-                    <td className="p-3 text-center text-sm">{item.perdida}</td>
-                    <td className="p-3 text-center text-sm">{item.tiempo}</td>
-                    <td className="p-3 text-center">
-                      <button className="text-[#4A2C2A] hover:text-[#3a231f] flex items-center gap-1">
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          className="h-5 w-5" 
-                          viewBox="0 0 20 20" 
-                          fill="currentColor"
-                        >
-                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                        </svg>
-                        Editar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-            {/* Paginación */}
-            <div className="flex justify-between items-center p-3 border-t">
-              <span className="text-sm text-gray-600">
-                Mostrando {producciones.length} resultados
-              </span>
-              <div className="flex gap-2">
-                <button 
-                  className="px-3 py-1 rounded bg-[#8FBC8F] text-[#4A2C2A] hover:bg-[#7da57d]"
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                >
-                  Anterior
-                </button>
-                <span className="px-3 py-1">{currentPage}</span>
-                <button 
-                  className="px-3 py-1 rounded bg-[#8FBC8F] text-[#4A2C2A] hover:bg-[#7da57d]"
-                  onClick={() => setCurrentPage(p => p + 1)}
-                >
-                  Siguiente
-                </button>
-              </div>
-            </div>
+        {/* Estadísticas */}
+        <div className="mt-6 grid grid-cols-3 gap-4">
+          <div className="rounded-lg bg-white p-4 shadow">
+            <h3 className="text-lg font-semibold text-[#4A2C2A]">Total Producido</h3>
+            <p className="text-2xl font-bold mt-2">{totalKg.toFixed(2)} kg</p>
           </div>
-
-          {/* Total en Producción */}
-          <div className="fixed bottom-0 left-64 right-0 bg-[#8FBC8F] z-10">
-            <div className="p-4 shadow-lg">
-              <div className="rounded-lg bg-white p-4 shadow">
-                <h2 className="text-lg font-semibold text-[#4A2C2A] mb-4">TOTAL EN PRODUCCIÓN</h2>
-                <div className="grid grid-cols-4 gap-4">
-                  <div className="text-center p-3 bg-[#8FBC8F]/20 rounded">
-                    <p className="text-sm text-[#4A2C2A]">Total Items</p>
-                    <p className="text-2xl font-bold mt-1">{totalProduccion}</p>
-                  </div>
-                  <div className="text-center p-3 bg-[#8FBC8F]/20 rounded">
-                    <p className="text-sm text-[#4A2C2A]">Tiempo Total</p>
-                    <p className="text-2xl font-bold mt-1">{totalTiempo}h</p>
-                  </div>
-                  <div className="text-center p-3 bg-[#8FBC8F]/20 rounded">
-                    <p className="text-sm text-[#4A2C2A]">Pérdida Promedio</p>
-                    <p className="text-2xl font-bold mt-1">{promedioPerdida.toFixed(1)}%</p>
-                  </div>
-                  <div className="text-center p-3 bg-[#8FBC8F]/20 rounded">
-                    <p className="text-sm text-[#4A2C2A]">Lotes Activos</p>
-                    <p className="text-2xl font-bold mt-1">{producciones.filter(p => p.status === 'activo').length}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="rounded-lg bg-white p-4 shadow">
+            <h3 className="text-lg font-semibold text-[#4A2C2A]">Pérdida Promedio</h3>
+            <p className="text-2xl font-bold mt-2">{perdidaPromedio.toFixed(2)} kg</p>
+          </div>
+          <div className="rounded-lg bg-white p-4 shadow">
+            <h3 className="text-lg font-semibold text-[#4A2C2A]">Lotes Activos</h3>
+            <p className="text-2xl font-bold mt-2">{lotesTostados.length}</p>
           </div>
         </div>
       </div>
