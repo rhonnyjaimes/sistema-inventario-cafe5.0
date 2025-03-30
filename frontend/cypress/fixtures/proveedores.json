@@ -1,0 +1,14 @@
+[
+    {
+      "id_proveedor": 1,
+      "nombre": "Proveedor Café Supremo",
+      "telefono1": "3001234567",
+      "telefono2": "6012345678"
+    },
+    {
+      "id_proveedor": 2,
+      "nombre": "Cafés Andinos SAS",
+      "telefono1": "3209876543",
+      "telefono2": "6076543210"
+    }
+  ]

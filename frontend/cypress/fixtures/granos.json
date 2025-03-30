@@ -1,0 +1,12 @@
+[
+  {
+    "id_grano": 1,
+    "origen": "Colombia",
+    "cantidad_kg": 1000,
+    "id_proveedor": 1,
+    "fecha_despacho": "2024-01-01",
+    "fecha_caducidad": "2025-01-01",
+    "lote_pagado": true,
+    "metodo_pago": "Transferencia"
+  }
+]

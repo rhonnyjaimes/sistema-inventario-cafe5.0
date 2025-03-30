@@ -11,6 +11,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
 app.use(cookieParser());
 
+
 // Importar rutas
 const authRoutes = require("./src/routes/authroutes");
 const usuarioRoutes = require("./src/routes/usuarioRoutes"); 

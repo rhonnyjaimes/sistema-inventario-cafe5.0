@@ -85,7 +85,9 @@ const Login = () => {
           </h2>
           
           {error && (
-            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg animate-shake">
+            <div 
+            data-testid="error-message"
+            className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg animate-shake">
               ⚠️ {error}
             </div>
           )}
@@ -127,12 +129,13 @@ const Login = () => {
             <div className="mt-6 flex flex-col gap-4">
               <button
                 type="submit"
+                data-testid="submit-btn" // 👈 ¡Añade esta línea!
                 className="w-full bg-coffee text-white py-2 rounded-lg font-medium hover:bg-coffee/90 transition-all duration-300 hover:scale-[1.02] active:scale-95 animate-rise delay-300 disabled:opacity-70"
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className=" w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     Procesando...
                   </div>
                 ) : (

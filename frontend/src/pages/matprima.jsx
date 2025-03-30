@@ -160,14 +160,15 @@ const MateriaPrima = () => {
 
       {/* Modal de Aprobación Edición */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"   data-testid="approval-modal-overlay">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md" data-testid="approval-modal">
             <h3 className="text-lg font-bold mb-4">Aprobación Requerida</h3>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2">
                 Contraseña de Supervisor
                 <div className="relative">
                   <input
+                    data-testid="password-input"
                     type={showPassword ? "text" : "password"}
                     value={approvalPass}
                     onChange={(e) => setApprovalPass(e.target.value)}
@@ -203,13 +204,14 @@ const MateriaPrima = () => {
 
       {/* Modal para edición */}
       {showEditForm && editData && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"   data-testid="edit-form-modal-overlay">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md"   data-testid="edit-form-modal">
             <h3 className="text-lg font-bold mb-4">Editar Lote</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Origen</label>
                 <input
+                  data-testid="origen-input"
                   type="text"
                   value={editData.origen}
                   onChange={(e) => setEditData({...editData, origen: e.target.value})}
@@ -220,6 +222,7 @@ const MateriaPrima = () => {
               <div>
                 <label className="block text-sm font-medium mb-1">Cantidad (kg)</label>
                 <input
+                  data-testid="origen-input"
                   type="number"
                   min="0"
                   value={editData.cantidad_kg}
@@ -525,12 +528,12 @@ const MateriaPrima = () => {
                       <td className="p-3 text-center">{new Date(grano.fecha_caducidad).toLocaleDateString()}</td>
                       <td className="p-3 text-center">{new Date(grano.fecha_despacho).toLocaleDateString()}</td>
                       <td className="p-3 text-center">
-                        <button 
-                          onClick={handleEditClick}
-                          className="text-[#4A2C2A] hover:text-[#3a231f] font-medium"
-                        >
-                          Editar
-                        </button>
+                      <button 
+                        data-testid="edit-button"
+                        onClick={handleEditClick}
+                        className="text-[#4A2C2A] hover:text-[#3a231f] font-medium">
+                        Editar
+                      </button>
                       </td>
                     </tr>
                   ))}
