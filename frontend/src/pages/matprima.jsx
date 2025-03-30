@@ -11,6 +11,9 @@ const MateriaPrima = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [showNewLoteModal, setShowNewLoteModal] = useState(false);
+
+  const [showNuevoProveedor, setShowNuevoProveedor] = useState(false);
+
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [editData, setEditData] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -24,6 +27,19 @@ const MateriaPrima = () => {
     lote_pagado: false,
     metodo_pago: 'Efectivo'
   });
+
+  //miguel
+  const [NuevoProveedor, setNuevoProveedor] = useState({
+    nombre_empresa: '',        
+    tipo_documento: '',      
+    rif: '',                  
+    correo: '',               
+    telefono_prefijo: '',     
+    telefono_numero: '',       
+    ubicacion: '',           
+  });
+  
+  //miguel
 
   // Estados para los datos obtenidos de la API
   const [granos, setGranos] = useState([]);
@@ -99,6 +115,39 @@ const MateriaPrima = () => {
     });
   };
 
+  const handleNewProveedorSubmit = () => {
+    // Si ya has validado los datos y todo está correcto, haz la solicitud para guardar el proveedor
+    fetch("/api/proveedores", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(NuevoProveedor),  // Envia los datos al servidor
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        // Si la respuesta es exitosa, puedes resetear el formulario y cerrar el modal
+        setNuevoProveedor({
+          nombre_empresa: '',
+          tipo_documento: 'V',
+          rif: '',
+          ubicacion: '',
+          telefono_prefijo: '0412',
+          telefono_numero: '',
+          correo: ''
+        });
+        setShowNuevoProveedor(false);
+      } else {
+        setError("Hubo un error al guardar el proveedor.");
+      }
+    })
+    .catch((error) => {
+      console.error("Error al guardar el proveedor:", error);
+      setError("Ocurrió un error al intentar guardar el proveedor.");
+    });
+  };
+  
   const handleNewLoteSubmit = () => {
     if (!newLoteData.origen || !newLoteData.cantidad_kg || !newLoteData.id_proveedor) {
       setError('Por favor complete todos los campos requeridos');
@@ -139,6 +188,7 @@ const MateriaPrima = () => {
     });
   };
 
+
   if (!userData) return <div className="p-4 text-gray-600">Cargando...</div>;
 
   return (
@@ -150,13 +200,24 @@ const MateriaPrima = () => {
         </div>
       )}
 
-      {/* Botón flotante para nuevo lote */}
-      <button 
-        onClick={() => setShowNewLoteModal(true)}
-        className="fixed bottom-8 right-8 bg-[#4A2C2A] text-white p-4 rounded-full shadow-lg hover:bg-[#3a231f] transition-all"
-      >
-        + Nuevo Lote
-      </button>
+
+      <div className="fixed bottom-8 right-8 flex gap-4">
+        {/* Botón flotante para nuevo lote */}
+        <button 
+          onClick={() => setShowNewLoteModal(true)}
+          className="bg-[#4A2C2A] text-white p-4 rounded-full shadow-lg hover:bg-[#3a231f] transition-all"
+        >
+          + Nuevo Lote
+        </button>
+
+        {/* Botón flotante para nuevo proveedor */}
+        <button 
+          onClick={() => setShowNuevoProveedor(true)}
+          className="bg-[#4A2C2A] text-white p-4 rounded-full shadow-lg hover:bg-[#3a231f] transition-all"
+        >
+          + Nuevo Proveedor
+        </button>
+      </div>
 
       {/* Modal de Aprobación Edición */}
       {showEditModal && (
@@ -404,6 +465,7 @@ const MateriaPrima = () => {
                 >
                   Cancelar
                 </button>
+                
                 <button
                   onClick={handleNewLoteSubmit}
                   className="px-4 py-2 bg-[#4A2C2A] text-white rounded hover:bg-[#3a231f]"
@@ -415,6 +477,165 @@ const MateriaPrima = () => {
           </div>
         </div>
       )}
+      
+{/* Modal para nuevo proveedor */} 
+{showNuevoProveedor && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 w-full max-w-md">
+      <h3 className="text-lg font-bold mb-4">Registrar Nuevo Proveedor</h3>
+      <div className="space-y-4">
+
+        {/* Nombre de la Empresa */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Nombre de la Empresa</label>
+          <input
+            type="text"
+            value={NuevoProveedor.nombre_empresa}
+            onChange={(e) => setNuevoProveedor({...NuevoProveedor, nombre_empresa: e.target.value})}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
+        {/* RIF/CI */}
+        <div>
+          <label className="block text-sm font-medium mb-1">RIF/CI</label>
+          <div className="flex gap-2">
+            <select
+              value={NuevoProveedor.tipo_documento}
+              onChange={(e) => setNuevoProveedor({...NuevoProveedor, tipo_documento: e.target.value})}
+              className="p-2 border rounded"
+            >
+              <option value="V">V</option>
+              <option value="J">J</option>
+              <option value="E">E</option>
+            </select>
+            <input
+              type="text"
+              value={NuevoProveedor.rif}
+              onChange={(e) => setNuevoProveedor({...NuevoProveedor, rif: e.target.value})}
+              className="flex-1 p-2 border rounded"
+              placeholder="Ej: 12345678"
+            />
+          </div>
+        </div>
+
+        {/* Ubicación */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Ubicación</label>
+          <input
+            type="text"
+            value={NuevoProveedor.ubicacion}
+            onChange={(e) => setNuevoProveedor({...NuevoProveedor, ubicacion: e.target.value})}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
+        {/* Número de Teléfono */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Número de Teléfono</label>
+          <div className="flex gap-2">
+            <select
+              value={NuevoProveedor.telefono_prefijo}
+              onChange={(e) => setNuevoProveedor({...NuevoProveedor, telefono_prefijo: e.target.value})}
+              className="p-2 border rounded"
+            >
+              <option value="0412">0412</option>
+              <option value="0424">0424</option>
+              <option value="0414">0414</option>
+              <option value="0426">0426</option>
+              <option value="0416">0416</option>
+            </select>
+            <input
+              type="text"
+              maxLength={7} // Limita la cantidad de caracteres a 7
+              value={NuevoProveedor.telefono_numero}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, ""); // Solo permite números
+                setNuevoProveedor({...NuevoProveedor, telefono_numero: value});
+              }}
+              className="flex-1 p-2 border rounded"
+              placeholder="Ej: 1234567"
+            />
+          </div>
+          {/* Mensaje de error si el número no tiene 11 dígitos */}
+          {NuevoProveedor.telefono_prefijo && NuevoProveedor.telefono_numero.length < 7 && (
+            <p className="text-red-500 text-sm mt-1">Debe completar los 7 dígitos restantes</p>
+          )}
+        </div>
+
+        {/* Correo Electrónico */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Correo Electrónico</label>
+          <input
+            type="email"
+            value={NuevoProveedor.correo}
+            onChange={(e) => setNuevoProveedor({...NuevoProveedor, correo: e.target.value})}
+            className="w-full p-2 border rounded"
+            placeholder="ejemplo@correo.com"
+          />
+        </div>
+
+        {/* Mensaje de error si los campos están vacíos */}
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+
+        {/* Botones */}
+        <div className="flex justify-end gap-3 mt-4">
+          <button
+            onClick={() => {
+              // Al cancelar, resetear el estado del formulario
+              setNuevoProveedor({
+                nombre_empresa: '',
+                tipo_documento: 'V',
+                rif: '',
+                ubicacion: '',
+                telefono_prefijo: '0412',
+                telefono_numero: '',
+                correo: ''
+              });
+              setShowNuevoProveedor(false);
+            }}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+          >
+            Cancelar
+          </button>
+
+          <button
+            onClick={() => {
+              // Validar si todos los campos están completos
+              if (
+                !NuevoProveedor.nombre_empresa ||
+                !NuevoProveedor.tipo_documento ||
+                !NuevoProveedor.rif ||
+                !NuevoProveedor.ubicacion ||
+                !NuevoProveedor.telefono_prefijo ||
+                !NuevoProveedor.telefono_numero ||
+                !NuevoProveedor.correo
+              ) {
+                setError("Todos los camposssss son obligatorios.");
+                return;
+              }
+              
+              // Validar si el número de teléfono tiene 11 dígitos
+              const telefonoCompleto = NuevoProveedor.telefono_prefijo + NuevoProveedor.telefono_numero;
+              if (telefonoCompleto.length !== 11) {
+                setError("Introduzca un número de teléfono válido de 11 dígitos.");
+                return;
+              }
+
+              setError("");  // Limpiar mensaje de error
+              handleNewProveedorSubmit(); // Si todo está bien, se ejecuta la función de guardar
+            }}
+            className="px-4 py-2 bg-[#4A2C2A] text-white rounded hover:bg-[#3a231f]"
+          >
+            Guardar
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+)}
+
 
       {/* Sidebar */}
       <div className={`fixed left-0 top-0 h-full w-64 bg-[#4A2C2A] p-4 ${isLoggingOut ? 'animate-slide-out-left' : 'animate-slide-in-left'}`}>
@@ -541,7 +762,7 @@ const MateriaPrima = () => {
           </div>
         )}
 
-        {/* Tabla de Proveedores */}
+                {/* Tabla de Proveedores */}
         {showSection === 'proveedores' && (
           <div className="rounded-lg bg-white p-4 shadow mb-6">
             <div className="overflow-x-auto">
@@ -549,9 +770,11 @@ const MateriaPrima = () => {
                 <thead className="bg-[#4A2C2A] text-white">
                   <tr>
                     <th className="p-3">ID</th>
-                    <th className="p-3">Nombre</th>
-                    <th className="p-3">Teléfono 1</th>
-                    <th className="p-3">Teléfono 2</th>
+                    <th className="p-3">Nombre Empresa</th>
+                    <th className="p-3">RIF/CI</th>
+                    <th className="p-3">Ubicación</th>
+                    <th className="p-3">Teléfono</th>
+                    <th className="p-3">Correo Electrónico</th>
                     <th className="p-3">Acciones</th>
                   </tr>
                 </thead>
@@ -559,12 +782,14 @@ const MateriaPrima = () => {
                   {proveedores.map((proveedor) => (
                     <tr key={proveedor.id_proveedor} className="border-b hover:bg-gray-50">
                       <td className="p-3 text-center">{proveedor.id_proveedor}</td>
-                      <td className="p-3">{proveedor.nombre}</td>
-                      <td className="p-3">{proveedor.telefono1}</td>
-                      <td className="p-3">{proveedor.telefono2}</td>
+                      <td className="p-3">{proveedor.nombre_empresa}</td>
+                      <td className="p-3">{proveedor.rif}</td>
+                      <td className="p-3">{proveedor.ubicacion}</td>
+                      <td className="p-3">{proveedor.telefono}</td>
+                      <td className="p-3">{proveedor.correo}</td>
                       <td className="p-3 text-center">
                         <button 
-                          onClick={handleEditClick}
+                          onClick={() => handleEditClick(proveedor.id_proveedor)}
                           className="text-[#4A2C2A] hover:text-[#3a231f] font-medium"
                         >
                           Editar
