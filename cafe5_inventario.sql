@@ -247,27 +247,18 @@ DELIMITER ;
 
 -- --------------------------------------------------------
 
---
 -- Estructura de tabla para la tabla `proveedores`
---
-
 CREATE TABLE `proveedores` (
-  `id_proveedor` int(11) NOT NULL,
-  `nombre` varchar(100) NOT NULL,
-  `telefono1` varchar(15) NOT NULL,
-  `telefono2` varchar(15) NOT NULL
+  `id_proveedor` INT(11) NOT NULL AUTO_INCREMENT,  -- Auto incremento en el ID
+  `nombre_empresa` VARCHAR(100) NOT NULL,          -- Nombre de la empresa
+  `tipo_documento` VARCHAR(50) NOT NULL,           -- Tipo de documento (RIF, NIT, etc.)
+  `rif` VARCHAR(20) NOT NULL,                      -- RIF/CI del proveedor
+  `correo` VARCHAR(100) NOT NULL,                  -- Correo electrónico
+  `telefono_prefijo` VARCHAR(10),                  -- Prefijo del teléfono (Ej. +58)
+  `telefono_numero` VARCHAR(20),                   -- Número de teléfono
+  `ubicacion` VARCHAR(255) NOT NULL,               -- Ubicación del proveedor
+  PRIMARY KEY (`id_proveedor`)                     -- Establecer la llave primaria
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `proveedores`
---
-
-INSERT INTO `proveedores` (`id_proveedor`, `nombre`, `telefono1`, `telefono2`) VALUES
-(1, 'Café Colombia S.A.', '+58 412-1234567', '+58 412-7654321'),
-(2, 'Brasil Coffee Co.', '+58 412-5551234', '+58 412-5555678'),
-(12, 'Café Santa Ana', '+58 412-1234567', '+58 412-7654321');
-
--- --------------------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `usuarios`
