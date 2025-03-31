@@ -114,27 +114,39 @@ const MateriaPrima = () => {
   };
 
   const handleNewProveedorSubmit = () => {
+    console.log("Datos a enviar:", NuevoProveedor); // 👀 Verifica si los datos están correctos antes de enviarlos
+  
     // Si ya has validado los datos y todo está correcto, haz la solicitud para guardar el proveedor
-    fetch("/api/proveedores", {
+    fetch('http://localhost:3001/api/proveedores', {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(NuevoProveedor),  // Envia los datos al servidor
     })
-    .then((response) => response.json())
+    .then((response) => {
+      console.log("Respuesta del servidor:", response); // Imprime la respuesta completa para verificar
+      if (!response.ok) {
+        throw new Error('Error en la respuesta del servidor');
+      }
+      return response.json(); // Parsear la respuesta a JSON
+    })
     .then((data) => {
-      if (data.success) {
+      console.log("Respuesta JSON:", data); // Imprime la respuesta en formato JSON
+  
+      // Verificar si el servidor devuelve un campo `id_proveedor` como indicativo de éxito
+      if (data && data.id_proveedor) {
         // Si la respuesta es exitosa, puedes resetear el formulario y cerrar el modal
         setNuevoProveedor({
           nombre_empresa: '',
           documento: '',
-          ubicacion: '',
+          correo: '',
           telefono: '',
-          correo: ''
+          ubicacion: ''
         });
         setShowNuevoProveedor(false);
       } else {
+        console.error("Error del servidor:", data); // Imprime el error detallado
         setError("Hubo un error al guardar el proveedor.");
       }
     })
@@ -143,6 +155,7 @@ const MateriaPrima = () => {
       setError("Ocurrió un error al intentar guardar el proveedor.");
     });
   };
+  
   
   const handleNewLoteSubmit = () => {
     if (!newLoteData.origen || !newLoteData.cantidad_kg || !newLoteData.id_proveedor) {
@@ -495,25 +508,36 @@ const MateriaPrima = () => {
           />
         </div>
 
-        {/* RIF/CI */}
+        {/* RIF/CI (ahora llamado "documento") */}
         <div>
           <label className="block text-sm font-medium mb-1">RIF/CI</label>
           <div className="flex gap-2">
             <select
               value={NuevoProveedor.tipo_documento}
-              onChange={(e) => setNuevoProveedor({...NuevoProveedor, tipo_documento: e.target.value})}
+              onChange={(e) => setNuevoProveedor({
+                ...NuevoProveedor,
+                tipo_documento: e.target.value,
+                documento: e.target.value + "-" + NuevoProveedor.documento.substring(1), // Inserta el guion entre tipo y número
+              })}
               className="p-2 border rounded"
             >
               <option value="V">V</option>
               <option value="J">J</option>
-              <option value="E">E</option>
+              <option value="K">K</option> {/* Agregado K */}
             </select>
             <input
               type="text"
-              value={NuevoProveedor.rif}
-              onChange={(e) => setNuevoProveedor({...NuevoProveedor, rif: e.target.value})}
+              value={NuevoProveedor.documento.substring(2)} // Extrae solo los números después del tipo y el guion
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, ""); // Solo permite números
+                setNuevoProveedor({
+                  ...NuevoProveedor,
+                  documento: NuevoProveedor.tipo_documento + "-" + value, // Guarda el tipo, el guion y el número juntos
+                });
+              }}
               className="flex-1 p-2 border rounded"
               placeholder="Ej: 12345678"
+              maxLength={8} // Máximo de 8 dígitos (después del tipo de documento)
             />
           </div>
         </div>
@@ -529,13 +553,18 @@ const MateriaPrima = () => {
           />
         </div>
 
-        {/* Número de Teléfono */}
+        {/* Número de Teléfono (con prefijo seleccionado) */}
         <div>
           <label className="block text-sm font-medium mb-1">Número de Teléfono</label>
           <div className="flex gap-2">
             <select
-              value={NuevoProveedor.telefono_prefijo}
-              onChange={(e) => setNuevoProveedor({...NuevoProveedor, telefono_prefijo: e.target.value})}
+              value={NuevoProveedor.telefono.substring(0, 4)} // Extrae el prefijo del teléfono
+              onChange={(e) => {
+                setNuevoProveedor({
+                  ...NuevoProveedor,
+                  telefono: e.target.value + NuevoProveedor.telefono.substring(4), // Mantiene el resto del número
+                });
+              }}
               className="p-2 border rounded"
             >
               <option value="0412">0412</option>
@@ -546,18 +575,21 @@ const MateriaPrima = () => {
             </select>
             <input
               type="text"
-              maxLength={7} // Limita la cantidad de caracteres a 7
-              value={NuevoProveedor.telefono_numero}
+              maxLength={7} // Limita a 7 caracteres
+              value={NuevoProveedor.telefono.substring(4)} // Extrae solo los últimos 7 dígitos
               onChange={(e) => {
                 const value = e.target.value.replace(/\D/g, ""); // Solo permite números
-                setNuevoProveedor({...NuevoProveedor, telefono_numero: value});
+                setNuevoProveedor({
+                  ...NuevoProveedor,
+                  telefono: NuevoProveedor.telefono.substring(0, 4) + value, // Une prefijo y número
+                });
               }}
               className="flex-1 p-2 border rounded"
               placeholder="Ej: 1234567"
             />
           </div>
-          {/* Mensaje de error si el número no tiene 11 dígitos */}
-          {NuevoProveedor.telefono_prefijo && NuevoProveedor.telefono_numero.length < 7 && (
+          {/* Validación de longitud del número */}
+          {NuevoProveedor.telefono.length > 0 && NuevoProveedor.telefono.length < 11 && (
             <p className="text-red-500 text-sm mt-1">Debe completar los 7 dígitos restantes</p>
           )}
         </div>
@@ -585,10 +617,9 @@ const MateriaPrima = () => {
               setNuevoProveedor({
                 nombre_empresa: '',
                 tipo_documento: 'V',
-                rif: '',
+                documento: '',
                 ubicacion: '',
-                telefono_prefijo: '0412',
-                telefono_numero: '',
+                telefono: '0412', // Se inicia con un prefijo predeterminado
                 correo: ''
               });
               setShowNuevoProveedor(false);
@@ -604,25 +635,23 @@ const MateriaPrima = () => {
               if (
                 !NuevoProveedor.nombre_empresa ||
                 !NuevoProveedor.tipo_documento ||
-                !NuevoProveedor.rif ||
+                !NuevoProveedor.documento ||
                 !NuevoProveedor.ubicacion ||
-                !NuevoProveedor.telefono_prefijo ||
-                !NuevoProveedor.telefono_numero ||
+                !NuevoProveedor.telefono ||
                 !NuevoProveedor.correo
               ) {
                 setError("Todos los campos son obligatorios.");
                 return;
               }
-              
+
               // Validar si el número de teléfono tiene 11 dígitos
-              const telefonoCompleto = NuevoProveedor.telefono_prefijo + NuevoProveedor.telefono_numero;
-              if (telefonoCompleto.length !== 11) {
+              if (NuevoProveedor.telefono.length !== 11) {
                 setError("Introduzca un número de teléfono válido de 11 dígitos.");
                 return;
               }
 
-              setError("");  // Limpiar mensaje de error
-              handleNewProveedorSubmit(); // Si todo está bien, se ejecuta la función de guardar
+              setError(""); // Limpiar mensaje de error
+              handleNewProveedorSubmit(); // Ejecuta la función de guardar
             }}
             className="px-4 py-2 bg-[#4A2C2A] text-white rounded hover:bg-[#3a231f]"
           >
@@ -634,6 +663,7 @@ const MateriaPrima = () => {
     </div>
   </div>
 )}
+
 
 
       {/* Sidebar */}
