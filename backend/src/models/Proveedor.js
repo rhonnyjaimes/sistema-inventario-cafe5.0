@@ -1,21 +1,21 @@
 const pool = require("../config/database");
 
 class Proveedor {
-  static async crear(nombre_empresa, tipo_documento, rif, telefono_prefijo, telefono_numero, ubicacion, correo) {
+  static async crear(nombre_empresa, documento, correo, telefono, ubicacion) {
     const query = `
       INSERT INTO proveedores 
-      (nombre_empresa, tipo_documento, rif, telefono_prefijo, telefono_numero, ubicacion, correo) 
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      (nombre_empresa, documento, correo, telefono, ubicacion) 
+      VALUES (?, ?, ?, ?, ?)
     `;
+    
     const [result] = await pool.execute(query, [
       nombre_empresa,
-      tipo_documento,
-      rif,
-      telefono_prefijo,
-      telefono_numero,
-      ubicacion,
-      correo
+      documento,
+      correo,
+      telefono,
+      ubicacion
     ]);
+    
     return result.insertId;
   }
 
@@ -25,7 +25,7 @@ class Proveedor {
     return results;
   }
 
-  static async actualizar(id_proveedor, { nombre_empresa, tipo_documento, rif, telefono_prefijo, telefono_numero, ubicacion, correo }) {
+  static async actualizar(id_proveedor, { nombre_empresa, documento, correo, telefono, ubicacion }) {
     let updates = [];
     let params = [];
     
@@ -33,29 +33,21 @@ class Proveedor {
       updates.push('nombre_empresa = ?');
       params.push(nombre_empresa);
     }
-    if (tipo_documento) {
-      updates.push('tipo_documento = ?');
-      params.push(tipo_documento);
-    }
-    if (rif) {
-      updates.push('rif = ?');
-      params.push(rif);
-    }
-    if (telefono_prefijo) {
-      updates.push('telefono_prefijo = ?');
-      params.push(telefono_prefijo);
-    }
-    if (telefono_numero) {
-      updates.push('telefono_numero = ?');
-      params.push(telefono_numero);
-    }
-    if (ubicacion) {
-      updates.push('ubicacion = ?');
-      params.push(ubicacion);
+    if (documento) {
+      updates.push('documento = ?');
+      params.push(documento);
     }
     if (correo) {
       updates.push('correo = ?');
       params.push(correo);
+    }
+    if (telefono) {
+      updates.push('telefono = ?');
+      params.push(telefono);
+    }
+    if (ubicacion) {
+      updates.push('ubicacion = ?');
+      params.push(ubicacion);
     }
 
     if (updates.length === 0) {

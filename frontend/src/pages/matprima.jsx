@@ -130,11 +130,9 @@ const MateriaPrima = () => {
         // Si la respuesta es exitosa, puedes resetear el formulario y cerrar el modal
         setNuevoProveedor({
           nombre_empresa: '',
-          tipo_documento: 'V',
-          rif: '',
+          documento: '',
           ubicacion: '',
-          telefono_prefijo: '0412',
-          telefono_numero: '',
+          telefono: '',
           correo: ''
         });
         setShowNuevoProveedor(false);
@@ -294,18 +292,18 @@ const MateriaPrima = () => {
 
               <div>
                 <label className="block text-sm font-medium mb-1">Proveedor</label>
-                <select
-                  value={editData.id_proveedor}
-                  onChange={(e) => setEditData({...editData, id_proveedor: e.target.value})}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="">Seleccione un proveedor</option>
-                  {proveedores.map(proveedor => (
-                    <option key={proveedor.id_proveedor} value={proveedor.id_proveedor}>
-                      {proveedor.nombre}
-                    </option>
-                  ))}
-                </select>
+                              <select
+                value={newLoteData.id_proveedor}
+                onChange={(e) => setNewLoteData({...newLoteData, id_proveedor: e.target.value})}
+                className="w-full p-2 border rounded"
+              >
+                <option value="">Seleccione un proveedor</option>
+                {proveedores.map(proveedor => (
+                  <option key={proveedor.id_proveedor} value={proveedor.id_proveedor}>
+                    {proveedor.nombre_empresa} {/* Cambiado de 'nombre' a 'nombre_empresa' */}
+                  </option>
+                ))}
+              </select>
               </div>
 
               <div>
@@ -401,18 +399,18 @@ const MateriaPrima = () => {
 
               <div>
                 <label className="block text-sm font-medium mb-1">Proveedor</label>
-                <select
-                  value={newLoteData.id_proveedor}
-                  onChange={(e) => setNewLoteData({...newLoteData, id_proveedor: e.target.value})}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="">Seleccione un proveedor</option>
-                  {proveedores.map(proveedor => (
-                    <option key={proveedor.id_proveedor} value={proveedor.id_proveedor}>
-                      {proveedor.nombre}
-                    </option>
-                  ))}
-                </select>
+                            <select
+              value={newLoteData.id_proveedor}
+              onChange={(e) => setNewLoteData({...newLoteData, id_proveedor: e.target.value})}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">Seleccione un proveedor</option>
+              {proveedores.map(proveedor => (
+                <option key={proveedor.id_proveedor} value={proveedor.id_proveedor}>
+                  {proveedor.nombre_empresa} {/* Cambiado de 'nombre' a 'nombre_empresa' */}
+                </option>
+              ))}
+            </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Fecha de Despacho</label>
@@ -614,7 +612,7 @@ const MateriaPrima = () => {
                 !NuevoProveedor.telefono_numero ||
                 !NuevoProveedor.correo
               ) {
-                setError("Todos los camposssss son obligatorios.");
+                setError("Todos los campos son obligatorios.");
                 return;
               }
               
