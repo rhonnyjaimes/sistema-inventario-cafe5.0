@@ -28,18 +28,16 @@ const MateriaPrima = () => {
     metodo_pago: 'Efectivo'
   });
 
-  //miguel
+
   const [NuevoProveedor, setNuevoProveedor] = useState({
-    nombre_empresa: '',        
-    tipo_documento: '',      
-    rif: '',                  
-    correo: '',               
-    telefono_prefijo: '',     
-    telefono_numero: '',       
-    ubicacion: '',           
+    nombre_empresa: '',
+    documento: '',
+    correo: '',
+    telefono: '',
+    ubicacion: ''
   });
   
-  //miguel
+  
 
   // Estados para los datos obtenidos de la API
   const [granos, setGranos] = useState([]);
@@ -764,18 +762,18 @@ const MateriaPrima = () => {
         )}
 
                 {/* Tabla de Proveedores */}
-        {showSection === 'proveedores' && (
+                {showSection === 'proveedores' && (
           <div className="rounded-lg bg-white p-4 shadow mb-6">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-[#4A2C2A] text-white">
                   <tr>
                     <th className="p-3">ID</th>
-                    <th className="p-3">Nombre Empresa</th>
-                    <th className="p-3">RIF/CI</th>
-                    <th className="p-3">Ubicación</th>
+                    <th className="p-3">Empresa</th>
+                    <th className="p-3">Documento</th>
                     <th className="p-3">Teléfono</th>
-                    <th className="p-3">Correo Electrónico</th>
+                    <th className="p-3">Ubicación</th>
+                    <th className="p-3">Correo</th>
                     <th className="p-3">Acciones</th>
                   </tr>
                 </thead>
@@ -784,13 +782,13 @@ const MateriaPrima = () => {
                     <tr key={proveedor.id_proveedor} className="border-b hover:bg-gray-50">
                       <td className="p-3 text-center">{proveedor.id_proveedor}</td>
                       <td className="p-3">{proveedor.nombre_empresa}</td>
-                      <td className="p-3">{proveedor.rif}</td>
-                      <td className="p-3">{proveedor.ubicacion}</td>
+                      <td className="p-3">{proveedor.documento}</td>
                       <td className="p-3">{proveedor.telefono}</td>
+                      <td className="p-3">{proveedor.ubicacion}</td>
                       <td className="p-3">{proveedor.correo}</td>
                       <td className="p-3 text-center">
                         <button 
-                          onClick={() => handleEditClick(proveedor.id_proveedor)}
+                          onClick={() => handleEditClick(proveedor)}
                           className="text-[#4A2C2A] hover:text-[#3a231f] font-medium"
                         >
                           Editar

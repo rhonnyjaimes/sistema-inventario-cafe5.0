@@ -30,12 +30,7 @@ const Index = () => {
           >
             Iniciar Sesión
           </Link>
-          <Link
-            to="/registro"
-            className="bg-white text-coffee px-8 py-3 rounded-lg font-medium border-2 border-coffee hover:bg-gray-50 transition-all text-lg shadow-md transform hover:scale-105 animate-rise delay-300"
-          >
-            Crear Cuenta
-          </Link>
+         
         </div>
 
         {/* Tarjetas de características - Animación en cascada */}
