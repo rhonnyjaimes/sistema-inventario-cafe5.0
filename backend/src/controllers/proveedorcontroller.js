@@ -9,16 +9,17 @@ exports.obtenerProveedores = async (req, res) => {
   }
 };
 
+// Controlador (routes/controllers)
 exports.crearProveedores = async (req, res) => {
   try {
     const { nombre_empresa, documento, telefono, ubicacion, correo } = req.body;
-    const nuevoId = await Proveedor.crear(nombre_empresa, documento, telefono, ubicacion, correo);
+    // Cambiar el orden al llamar a Proveedor.crear
+    const nuevoId = await Proveedor.crear(nombre_empresa, documento, correo, telefono, ubicacion);
     res.status(201).json({ id_proveedor: nuevoId });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
-
 exports.actualizarProveedor = async (req, res) => {
   try {
     const { id } = req.params;

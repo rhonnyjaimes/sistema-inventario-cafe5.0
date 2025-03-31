@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 30-03-2025 a las 00:14:18
+-- Tiempo de generación: 31-03-2025 a las 04:01:20
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -55,9 +55,9 @@ CREATE TABLE `granos` (
 --
 
 INSERT INTO `granos` (`id_grano`, `origen`, `cantidad_kg`, `fecha_despacho`, `fecha_caducidad`, `id_proveedor`, `lote_pagado`, `metodo_pago`) VALUES
-(6, 'Colombiaaa', 50.00, '2024-02-29', '2024-08-31', 1, 1, 'Transferencia Bancaria'),
-(11, 'Colombia', 0.00, '2025-03-25', '2025-12-31', 1, 0, 'Pago Pendiente'),
-(12, 'Valera', 50.00, '2025-03-25', '2025-07-31', 12, 0, 'Efectivo');
+(6, 'Caracas', 50.00, '2024-02-29', '2024-08-31', 1, 1, 'Transferencia Bancaria'),
+(11, 'Caracas', 0.00, '2025-03-25', '2025-12-31', 1, 0, 'Pago Pendiente'),
+(12, 'Valencia', 50.00, '2025-03-25', '2025-07-31', 2, 0, 'Efectivo');
 
 -- --------------------------------------------------------
 
@@ -247,18 +247,29 @@ DELIMITER ;
 
 -- --------------------------------------------------------
 
+--
 -- Estructura de tabla para la tabla `proveedores`
+--
+
 CREATE TABLE `proveedores` (
-  `id_proveedor` INT(11) NOT NULL AUTO_INCREMENT,  -- Auto incremento en el ID
-  `nombre_empresa` VARCHAR(100) NOT NULL,          -- Nombre de la empresa
-  `tipo_documento` VARCHAR(50) NOT NULL,           -- Tipo de documento (RIF, NIT, etc.)
-  `rif` VARCHAR(20) NOT NULL,                      -- RIF/CI del proveedor
-  `correo` VARCHAR(100) NOT NULL,                  -- Correo electrónico
-  `telefono_prefijo` VARCHAR(10),                  -- Prefijo del teléfono (Ej. +58)
-  `telefono_numero` VARCHAR(20),                   -- Número de teléfono
-  `ubicacion` VARCHAR(255) NOT NULL,               -- Ubicación del proveedor
-  PRIMARY KEY (`id_proveedor`)                     -- Establecer la llave primaria
+  `id_proveedor` int(11) NOT NULL,
+  `nombre_empresa` varchar(100) NOT NULL,
+  `documento` varchar(20) NOT NULL,
+  `correo` varchar(100) NOT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `ubicacion` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `proveedores`
+--
+
+INSERT INTO `proveedores` (`id_proveedor`, `nombre_empresa`, `documento`, `correo`, `telefono`, `ubicacion`) VALUES
+(1, 'Cafe Caracas', 'J-123456789', 'CAFE@CARACAS.COM', '4125551234', 'Caracas, Venezuela'),
+(2, 'Cafe Valencia', 'J-987654321', 'info@electroparts.com', '4245556789', 'Valencia, Venezuela'),
+(5, 'Cafe Trujillo', 'J-1231521', 'Cafe@trujillo.com', '4125551234', 'Trujillo, Venezuela');
+
+-- --------------------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `usuarios`
@@ -384,7 +395,7 @@ ALTER TABLE `productosterminados`
 -- AUTO_INCREMENT de la tabla `proveedores`
 --
 ALTER TABLE `proveedores`
-  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
