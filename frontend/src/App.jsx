@@ -1,7 +1,6 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/index";
-import Registro from "./pages/registro";
 import Login from "./pages/login";
 import TestPage from './pages/TestPage';
 import Dashboard from "./pages/dashboard";

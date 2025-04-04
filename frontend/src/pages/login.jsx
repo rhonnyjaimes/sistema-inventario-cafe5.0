@@ -152,15 +152,7 @@ const Login = () => {
             </div>
           </form>
 
-          <p className="mt-4 text-center text-sm text-coffee/80 animate-rise delay-500">
-            ¿No tienes cuenta?{" "}
-            <Link 
-              to="/registro" 
-              className="text-coffee font-medium hover:underline transition-all duration-200"
-            >
-              Regístrate aquí
-            </Link>
-          </p>
+        
         </div>
       </div>
     </div>

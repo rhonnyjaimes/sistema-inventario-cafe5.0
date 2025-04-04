@@ -196,11 +196,11 @@ const ProductosTerminados = () => {
             
             {/* Paginación */}
             <div className="flex gap-2 px-4 py-2 rounded-lg bg-[#4A2C2A] text-white">
-              <button className="px-3 py-1 rounded bg-[#8FBC8F] text-[#4A2C2A]">
+              <button className="px-3 py-1 rounded bg-[white] text-[#4A2C2A]">
                 Anterior
               </button>
               <span className="px-3 py-1">1</span>
-              <button className="px-3 py-1 rounded bg-[#8FBC8F] text-[#4A2C2A]">
+              <button className="px-3 py-1 rounded bg-[white] text-[#4A2C2A]">
                 Siguiente
               </button>
             </div>

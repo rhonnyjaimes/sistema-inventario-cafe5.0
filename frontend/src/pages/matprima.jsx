@@ -464,7 +464,7 @@ const MateriaPrima = () => {
                   <option value="Efectivo">Efectivo</option>
                   <option value="Transferencia">Transferencia</option>
                   <option value="Cheque">Cheque</option>
-                  <option value="Pagp Pendiente">Pago Pendiente</option>
+                  <option value="Pago Pendiente">Pago Pendiente</option>
                 </select>
               </div>
 
@@ -762,9 +762,7 @@ const MateriaPrima = () => {
                       <td className="p-3 text-center">{grano.id_grano}</td>
                       <td className="p-3">{grano.origen}</td>
                       <td className="p-3 text-center">{grano.cantidad_kg}</td>
-                      <td className="p-3">
-                        {proveedores.find(p => p.id_proveedor === grano.id_proveedor)?.nombre}
-                      </td>
+                      <td className="p-3 text-center">{grano.id_proveedor}</td>
                       <td className="p-3 text-center">
                         <span className={`px-2 py-1 rounded-full text-sm ${
                           grano.lote_pagado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
