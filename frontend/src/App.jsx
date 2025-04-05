@@ -15,7 +15,6 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
-      <Route path="/registro" element={<Registro />} />
       <Route path="/login" element={<Login />} />
       <Route path="/test" element={<TestPage />} />
 
