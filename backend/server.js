@@ -20,6 +20,7 @@ const granoRoutes = require('./src/routes/granoroutes');
 const lotetostadoRoutes = require('./src/routes/lotetostadoroutes');
 const loteMolidoRoutes = require('./src/routes/lotemolidoroutes');
 const productoterminadoroutes  = require('./src/routes/productoterminadoroutes');
+const pedidosroutes  = require('./src/routes/pedidoroutes');
 
 
 
@@ -31,6 +32,7 @@ app.use("/api", granoRoutes);
 app.use("/api", lotetostadoRoutes);
 app.use('/api', loteMolidoRoutes);
 app.use("/api",productoterminadoroutes);
+app.use("/api",pedidosroutes);
 
 
 app.get("/", (req, res) => {
