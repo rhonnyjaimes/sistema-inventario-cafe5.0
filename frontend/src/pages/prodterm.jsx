@@ -150,24 +150,32 @@ const ProductosTerminados = () => {
 
   return (
     <div className="min-h-screen bg-[#8FBC8F] font-sans">
+      {/* Sidebar */}
       <div className={`fixed left-0 top-0 h-full w-64 bg-[#4A2C2A] p-4 ${isLoggingOut ? 'animate-slide-out-left' : 'animate-slide-in-left'}`}>
         <div className="mb-8 flex items-center gap-4 border-b border-[#8FBC8F] pb-4">
           <img 
-            src="/img/logo.jpg" 
-            alt="Logo" 
+            src="/img/logo.jpg"
+            alt="Logo Café 5.0"
             className="h-12 w-12 rounded-full border-2 border-white"
           />
           <span className="text-xl font-bold text-white">Café 5.0</span>
         </div>
         
         <nav className="space-y-2">
-          {['Dashboard', 'Materia Prima', 'Producción', 'Productos Terminados', 'Ventas', 'Usuarios'].map((item) => (
+          {[
+            { name: 'Dashboard', path: '/dashboard' },
+            { name: 'Materia Prima', path: '/matprima' },
+            { name: 'Producción', path: '/prod' },
+            { name: 'Productos Terminados', path: '/prodterm' },
+            { name: 'Ventas', path: '/ventas' },
+            { name: 'Gestión de Usuarios', path: '/usuarios' }
+          ].map((item) => (
             <button
-              key={item}
-              onClick={() => navigate(`/${item.toLowerCase().replace(' ', '')}`)}
-              className="w-full rounded-lg p-3 text-left text-white hover:bg-[#8FBC8F]/20 duration-200"
+              key={item.name}
+              onClick={() => navigate(item.path)}
+              className="w-full rounded-lg p-3 text-left text-white hover:bg-[#8FBC8F]/20 transition-colors duration-200"
             >
-              {item}
+              {item.name}
             </button>
           ))}
         </nav>
@@ -211,6 +219,7 @@ const ProductosTerminados = () => {
             <table className="w-full">
               <thead className="bg-[#4A2C2A] text-white">
                 <tr>
+                  <th className="p-3 text-left">ID</th>
                   <th className="p-3 text-left">Presentación</th>
                   <th className="p-3 text-left">Lote Molido</th>
                   <th className="p-3 text-center">Paquetes</th>
@@ -230,6 +239,7 @@ const ProductosTerminados = () => {
                   <tr><td colSpan="6" className="p-4 text-center">No hay productos registrados</td></tr>
                 ) : (productosTerminados.map(item => (
                   <tr key={item.id_producto} className="border-b hover:bg-gray-50">
+                     <td className="p-3">{item.id_producto}</td>
                     <td className="p-3">{formatPresentacion(item.presentacion)}</td>
                     <td className="p-3">Lote #{item.id_lote_molido}</td>
                     <td className="p-3 text-center">{item.cantidad_paquetes}</td>

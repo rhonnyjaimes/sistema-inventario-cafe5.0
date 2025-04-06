@@ -138,9 +138,10 @@ const Ventas = () => {
                     defaultValue={currentPedido?.id_producto}
                     required
                   >
+                    <option value="" disabled>Seleccione un producto</option>
                     {productos.map(p => (
                       <option key={p.id_producto} value={p.id_producto}>
-                        Producto #{p.id_producto}
+                        {p.presentacion}kg - Disponibles: {p.cantidad_paquetes}
                       </option>
                     ))}
                   </select>
@@ -215,25 +216,32 @@ const Ventas = () => {
         </div>
       )}
 
-      {/* Barra lateral */}
+      {/* Sidebar */}
       <div className={`fixed left-0 top-0 h-full w-64 bg-[#4A2C2A] p-4 ${isLoggingOut ? 'animate-slide-out-left' : 'animate-slide-in-left'}`}>
         <div className="mb-8 flex items-center gap-4 border-b border-[#8FBC8F] pb-4">
           <img 
             src="/img/logo.jpg"
-            alt="Logo"
+            alt="Logo Café 5.0"
             className="h-12 w-12 rounded-full border-2 border-white"
           />
           <span className="text-xl font-bold text-white">Café 5.0</span>
         </div>
         
         <nav className="space-y-2">
-          {['Dashboard', 'Materia Prima', 'Producción', 'Productos Terminados', 'Ventas', 'Gestión de Usuarios'].map((item) => (
+          {[
+            { name: 'Dashboard', path: '/dashboard' },
+            { name: 'Materia Prima', path: '/matprima' },
+            { name: 'Producción', path: '/prod' },
+            { name: 'Productos Terminados', path: '/prodterm' },
+            { name: 'Ventas', path: '/ventas' },
+            { name: 'Gestión de Usuarios', path: '/usuarios' }
+          ].map((item) => (
             <button
-              key={item}
-              onClick={() => navigate(`/${item.toLowerCase().replace(/ /g, '-')}`)}
-              className="w-full text-left p-3 text-white rounded-lg hover:bg-[#8FBC8F]/20 transition-colors"
+              key={item.name}
+              onClick={() => navigate(item.path)}
+              className="w-full rounded-lg p-3 text-left text-white hover:bg-[#8FBC8F]/20 transition-colors duration-200"
             >
-              {item}
+              {item.name}
             </button>
           ))}
         </nav>
@@ -407,7 +415,7 @@ const Ventas = () => {
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 rounded bg-[#8FBC8F] text-[#4A2C2A] hover:bg-[#7da57d] disabled:opacity-50"
+                    className="px-3 py-1 rounded bg-[#4A2C2A] text-white hover:bg-[#3a231f] disabled:opacity-50 transition-colors"
                   >
                     Anterior
                   </button>
@@ -417,7 +425,7 @@ const Ventas = () => {
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 rounded bg-[#8FBC8F] text-[#4A2C2A] hover:bg-[#7da57d] disabled:opacity-50"
+                    className="px-3 py-1 rounded bg-[#4A2C2A] text-white hover:bg-[#3a231f] disabled:opacity-50 transition-colors"
                   >
                     Siguiente
                   </button>
