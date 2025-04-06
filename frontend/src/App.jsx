@@ -20,7 +20,7 @@ function App() {
 
       <Route path="/matprima" element={<MateriaPrima />} />
       <Route path="/prod" element={<Produccion />} />
-      <Route path="/prodterm" element={<ProductosTerminados />} />
+      <Route path="/prodterm/" element={<ProductosTerminados />} />
       <Route path="/ventas" element={<Ventas />} />
       <Route path="/usuarios" element={<Usuarios />} />
 
