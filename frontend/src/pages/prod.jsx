@@ -131,21 +131,32 @@ const Produccion = () => {
         }
       }
 
-      const body = tipoProduccion === 'tostado' ? {
-        fecha: new Date().toISOString().split('T')[0],
-        temperatura: newLote.temperatura,
-        peso_inicial_kg: newLote.peso_inicial_kg,
-        peso_final_kg: parseFloat(newLote.peso_final_kg),
-        id_grano: newLote.id_grano
-      } : {
-        fecha: new Date().toISOString().split('T')[0],
-        tipo_molido: newLote.tipo_molido,
-        cantidad_procesada_kg: newLote.cantidad_procesada,
-        tiempo_produccion: newLote.tiempo_produccion,
-        id_lote_tostado: newLote.id_lote_tostado,
-        id_grano: newLote.id_grano
-      };
+    // Validación al estilo Materia Prima
+    const requiredFields = tipoProduccion === 'tostado' 
+      ? ['peso_inicial_kg', 'peso_final_kg', 'id_grano']
+      : ['cantidad_procesada', 'id_lote_tostado', 'tipo_molido'];
 
+    const missingFields = requiredFields.filter(field => !newLote[field]);
+    if (missingFields.length > 0) {
+      setError(`Faltan campos requeridos: ${missingFields.join(', ')}`);
+      return;
+    }
+
+    // Convertir valores vacíos a null como en Materia Prima
+    const body = tipoProduccion === 'tostado' ? {
+      fecha: newLote.fecha,
+      temperatura: newLote.temperatura || null,  // Convertir undefined a null
+      peso_inicial_kg: newLote.peso_inicial_kg,
+      peso_final_kg: newLote.peso_final_kg,
+      id_grano: newLote.id_grano
+    } : {
+      fecha: newLote.fecha || new Date().toISOString().split('T')[0],
+      tipo_molido: newLote.tipo_molido,
+      cantidad_procesada_kg: parseFloat(newLote.cantidad_procesada),
+      tiempo_produccion: newLote.tiempo_produccion,
+      id_lote_tostado: parseInt(newLote.id_lote_tostado),
+      id_grano: parseInt(newLote.id_grano)
+    };
       const response = await fetch(`http://localhost:3001/api/${endpoint}`, {
         method: 'POST',
         headers: {
