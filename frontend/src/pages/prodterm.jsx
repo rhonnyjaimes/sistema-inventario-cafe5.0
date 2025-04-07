@@ -1,16 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const checkAuth = (navigate) => {
-  const token = localStorage.getItem('token');
-  const storedUser = JSON.parse(localStorage.getItem('user'));
-  if (!token || !storedUser) {
-    navigate('/login');
-    return false;
-  }
-  return true;
-};
-
 const ProductosTerminados = () => {
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [userData, setUserData] = useState(null);
@@ -28,41 +18,52 @@ const ProductosTerminados = () => {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // Nuevos estados para el sistema de supervisión
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [approvalPass, setApprovalPass] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        
-        const [productosRes, lotesRes] = await Promise.all([
-          fetch('http://localhost:3001/api/productosterminados', {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          fetch('http://localhost:3001/api/lotesmolidos', {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-        ]);
-
-        if (!productosRes.ok || !lotesRes.ok) throw new Error('Error fetching data');
-        
-        const productosData = await productosRes.json();
-        const lotesData = await lotesRes.json();
-
-        setProductosTerminados(productosData);
-        setLotes(lotesData.filter(l => l.cantidad_procesada_kg > 0));
-        setLoading(false);
-      } catch (error) {
-        console.error('Error:', error);
-        setLoading(false);
-      }
-    };
-
-    if (!checkAuth(navigate)) return;
-    
+    const token = localStorage.getItem('token');
     const storedUser = JSON.parse(localStorage.getItem('user'));
+
+    if (!token || !storedUser) {
+      navigate('/login');
+      return;
+    }
+    
     setUserData(storedUser);
     fetchData();
   }, [navigate]);
+
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      const [productosRes, lotesRes] = await Promise.all([
+        fetch('http://localhost:3001/api/productosterminados', {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch('http://localhost:3001/api/lotesmolidos', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+
+      if (!productosRes.ok || !lotesRes.ok) throw new Error('Error fetching data');
+      
+      const productosData = await productosRes.json();
+      const lotesData = await lotesRes.json();
+
+      setProductosTerminados(productosData);
+      setLotes(lotesData.filter(l => l.cantidad_procesada_kg > 0));
+      setLoading(false);
+    } catch (error) {
+      console.error('Error:', error);
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     setIsLoggingOut(true);
@@ -72,14 +73,27 @@ const ProductosTerminados = () => {
     }, 500);
   };
 
-  const openEditModal = (producto) => {
+  // Función para manejar el click de edición con supervisión
+  const handleEditClick = (producto) => {
     setFormData({
       id_lote_molido: producto.id_lote_molido,
       presentacion: producto.presentacion,
       cantidad_paquetes: producto.cantidad_paquetes
     });
     setSelectedProductId(producto.id_producto);
-    setShowFormModal(true);
+    setShowEditModal(true); // Mostrar modal de aprobación primero
+    setError('');
+    setApprovalPass('');
+  };
+
+  // Función para manejar la aprobación del supervisor
+  const handleApprovalSubmit = () => {
+    if (approvalPass === 'SUPERVISOR1234') {
+      setShowEditModal(false);
+      setShowFormModal(true); // Mostrar el formulario de edición después de aprobar
+    } else {
+      setError('Contraseña de aprobación incorrecta');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -96,7 +110,7 @@ const ProductosTerminados = () => {
 
       const body = {
         ...formData,
-        id_lote_molido: Number(formData.id_lote_molido), // Convertir a número
+        id_lote_molido: Number(formData.id_lote_molido),
         cantidad_paquetes: Number(formData.cantidad_paquetes),
         presentacion: formData.presentacion.toString()
       };
@@ -115,10 +129,7 @@ const ProductosTerminados = () => {
         throw new Error(errorData.message || 'Error guardando datos');
       }
 
-            // Cerrar modal inmediatamente
       setShowFormModal(false);
-      
-      // Mostrar animación de éxito
       setShowSuccessAnimation(true);
       setTimeout(() => setShowSuccessAnimation(false), 2000);
 
@@ -158,12 +169,54 @@ const ProductosTerminados = () => {
 
   return (
     <div className="min-h-screen bg-[#8FBC8F] font-sans">
+      {showSuccessAnimation && (
+        <div className="fixed top-4 right-4 animate-fade-in-out bg-green-500 text-white px-4 py-2 rounded-lg">
+          ✔ Operación realizada exitosamente!
+        </div>
+      )}
 
-        {showSuccessAnimation && (
-                <div className="fixed top-4 right-4 animate-fade-in-out bg-green-500 text-white px-4 py-2 rounded-lg">
-                  ✔ Lote registrado exitosamente!
+      {/* Modal de aprobación del supervisor */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4">Aprobación Requerida</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">
+                Contraseña de Supervisor
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={approvalPass}
+                    onChange={(e) => setApprovalPass(e.target.value)}
+                    className="w-full p-2 border rounded mt-1"
+                  />
+                  <button
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-3 text-sm text-gray-600"
+                  >
+                    {showPassword ? 'Ocultar' : 'Mostrar'}
+                  </button>
                 </div>
-              )}
+              </label>
+              {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleApprovalSubmit}
+                className="px-4 py-2 bg-[#4A2C2A] text-white rounded hover:bg-[#3a231f]"
+              >
+                Aprobar Edición
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sidebar */}
       <div className={`fixed left-0 top-0 h-full w-64 bg-[#4A2C2A] p-4 ${isLoggingOut ? 'animate-slide-out-left' : 'animate-slide-in-left'}`}>
@@ -177,13 +230,12 @@ const ProductosTerminados = () => {
         </div>
         
         <nav className="space-y-2">
-                  {[
+          {[
             { name: 'Dashboard', path: '/dashboard' },
             { name: 'Materia Prima', path: '/matprima' },
             { name: 'Producción', path: '/prod' },
             { name: 'Productos Terminados', path: '/prodterm' },
             { name: 'Ventas', path: '/ventas' },
-            // Solo muestra esta opción si el usuario es gerente
             ...(userData?.rol === 'gerente' 
               ? [{ name: 'Gestion de Usuarios', path: '/usuarios' }] 
               : [])
@@ -249,15 +301,15 @@ const ProductosTerminados = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="6" className="p-4 text-center">
+                    <td colSpan="7" className="p-4 text-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4A2C2A] mx-auto"></div>
                     </td>
                   </tr>
                 ) : productosTerminados.length === 0 ? (
-                  <tr><td colSpan="6" className="p-4 text-center">No hay productos registrados</td></tr>
+                  <tr><td colSpan="7" className="p-4 text-center">No hay productos registrados</td></tr>
                 ) : (productosTerminados.map(item => (
                   <tr key={item.id_producto} className="border-b hover:bg-gray-50">
-                     <td className="p-3">{item.id_producto}</td>
+                    <td className="p-3">{item.id_producto}</td>
                     <td className="p-3">{formatPresentacion(item.presentacion)}</td>
                     <td className="p-3">Lote #{item.id_lote_molido}</td>
                     <td className="p-3 text-center">{item.cantidad_paquetes}</td>
@@ -265,7 +317,7 @@ const ProductosTerminados = () => {
                     <td className="p-3">{formatFecha(item.fecha_vencimiento)}</td>
                     <td className="p-3 text-center">
                       <button 
-                        onClick={() => openEditModal(item)}
+                        onClick={() => handleEditClick(item)}
                         className="text-[#4A2C2A] hover:text-[#3a231f] px-2 py-1 rounded hover:bg-gray-100"
                       >
                         Editar
@@ -296,6 +348,7 @@ const ProductosTerminados = () => {
                     onChange={e => setFormData({...formData, id_lote_molido: e.target.value})}
                     className="w-full p-2 border rounded focus:ring-2 focus:ring-[#4A2C2A]"
                     required
+                    disabled={!!selectedProductId} // Deshabilitar para edición
                   >
                     <option value="">Seleccionar lote</option>
                     {lotes.map(lote => (
@@ -313,6 +366,7 @@ const ProductosTerminados = () => {
                     onChange={e => setFormData({...formData, presentacion: e.target.value})}
                     className="w-full p-2 border rounded focus:ring-2 focus:ring-[#4A2C2A]"
                     required
+                    disabled={!!selectedProductId} // Deshabilitar para edición
                   >
                     <option value="0.25">250 gramos</option>
                     <option value="0.5">500 gramos</option>
@@ -331,7 +385,8 @@ const ProductosTerminados = () => {
                   </label>
                   <input
                     type="number"
-                    step="0.01"
+                    step="1"
+                    min="1"
                     max={calcularMaxPaquetes()}
                     value={formData.cantidad_paquetes}
                     onChange={e => setFormData({...formData, cantidad_paquetes: e.target.value})}
