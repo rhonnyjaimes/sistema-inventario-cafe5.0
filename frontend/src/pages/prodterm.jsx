@@ -46,9 +46,9 @@ const ProductosTerminados = () => {
         
         const productosData = await productosRes.json();
         const lotesData = await lotesRes.json();
-        
+
         setProductosTerminados(productosData);
-        setLotes(lotesData.filter(l => l.cantidad_kg > 0));
+        setLotes(lotesData.filter(l => l.cantidad_procesada_kg > 0));
         setLoading(false);
       } catch (error) {
         console.error('Error:', error);
@@ -95,8 +95,9 @@ const ProductosTerminados = () => {
 
       const body = {
         ...formData,
+        id_lote_molido: Number(formData.id_lote_molido), // Convertir a número
         cantidad_paquetes: Number(formData.cantidad_paquetes),
-        presentacion: Number(formData.presentacion)
+        presentacion: formData.presentacion.toString()
       };
 
       const response = await fetch(url, {
@@ -129,7 +130,7 @@ const ProductosTerminados = () => {
 
   const calcularMaxPaquetes = () => {
     const lote = lotes.find(l => l.id_lote_molido == formData.id_lote_molido);
-    return lote ? Math.floor(lote.cantidad_kg / formData.presentacion) : 0;
+    return lote ? Math.floor(lote.cantidad_procesada_kg / formData.presentacion) : 0;
   };
 
   const formatPresentacion = (presentacion) => ({
@@ -282,7 +283,7 @@ const ProductosTerminados = () => {
                     <option value="">Seleccionar lote</option>
                     {lotes.map(lote => (
                       <option key={lote.id_lote_molido} value={lote.id_lote_molido}>
-                        Lote #{lote.id_lote_molido} - {lote.cantidad_kg}kg
+                        Lote #{lote.id_lote_molido} - {lote.cantidad_procesada_kg}kg
                       </option>
                     ))}
                   </select>
@@ -313,7 +314,7 @@ const ProductosTerminados = () => {
                   </label>
                   <input
                     type="number"
-                    min="1"
+                    step="0.01"
                     max={calcularMaxPaquetes()}
                     value={formData.cantidad_paquetes}
                     onChange={e => setFormData({...formData, cantidad_paquetes: e.target.value})}
