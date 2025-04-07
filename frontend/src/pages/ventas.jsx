@@ -116,6 +116,18 @@ const Ventas = () => {
   const currentItems = filteredPedidos.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredPedidos.length / itemsPerPage);
 
+  const formatFecha = (fecha) => {
+    try {
+      return new Date(fecha).toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      });
+    } catch {
+      return 'Fecha no válida';
+    }
+  };
+
   if (!userData) return <div className="p-4 text-gray-600">Cargando...</div>;
 
   return (
@@ -367,8 +379,8 @@ const Ventas = () => {
                         <td className="p-3">{pedido.id_pedido}</td>
                         <td className="p-3">Producto #{pedido.id_producto}</td>
                         <td className="p-3 text-center">{pedido.cantidad_paquetes}</td>
-                        <td className="p-3">{pedido.fecha_pedido}</td>
-                        <td className="p-3">{pedido.fecha_entrega}</td>
+                        <td className="p-3">{formatFecha(pedido.fecha_pedido)}</td>
+                        <td className="p-3">{formatFecha(pedido.fecha_entrega)}</td>
                         <td className="p-3 text-center">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                             pedido.estado_pago === 'cobrado'
