@@ -562,14 +562,17 @@ const Produccion = () => {
           <span className="text-xl font-bold text-white">Café 5.0</span>
         </div>
         
-        <nav className="space-y-2">
-          {[
+                  <nav className="space-y-2">
+                  {[
             { name: 'Dashboard', path: '/dashboard' },
             { name: 'Materia Prima', path: '/matprima' },
             { name: 'Producción', path: '/prod' },
             { name: 'Productos Terminados', path: '/prodterm' },
             { name: 'Ventas', path: '/ventas' },
-            { name: 'Gestion de Usuarios', path: '/usuarios' }
+            // Solo muestra esta opción si el usuario es gerente
+            ...(userData?.rol === 'gerente' 
+              ? [{ name: 'Gestion de Usuarios', path: '/usuarios' }] 
+              : [])
           ].map((item) => (
             <button
               key={item.name}
