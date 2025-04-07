@@ -70,7 +70,7 @@ CREATE TABLE `lotesmolido` (
   `tipo_molido` varchar(20) NOT NULL CHECK (`tipo_molido` in ('fino','medio','grueso')),
   `cantidad_procesada_kg` decimal(10,2) NOT NULL,
   `fecha` date NOT NULL,
-  `tiempo_produccion` time NOT NULL,
+  `tiempo_produccion` int(11) NOT NULL COMMENT 'Tiempo en minutos',
   `id_lote_tostado` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -79,7 +79,7 @@ CREATE TABLE `lotesmolido` (
 --
 
 INSERT INTO `lotesmolido` (`id_lote_molido`, `tipo_molido`, `cantidad_procesada_kg`, `fecha`, `tiempo_produccion`, `id_lote_tostado`) VALUES
-(3, 'medio', 0.00, '2025-03-25', '01:30:00', 7);
+(3, 'medio', 0.00, '2025-03-25', 90, 7);
 
 --
 -- Disparadores `lotesmolido`

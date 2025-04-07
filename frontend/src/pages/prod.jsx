@@ -143,6 +143,9 @@ const Produccion = () => {
     }
 
     // Convertir valores vacíos a null como en Materia Prima
+    const [hours, minutes] = newLote.tiempo_produccion.split(':').map(Number);
+    const tiempoProduccionMinutos = hours * 60 + minutes;
+
     const body = tipoProduccion === 'tostado' ? {
       fecha: newLote.fecha,
       temperatura: newLote.temperatura || null,  // Convertir undefined a null
@@ -153,7 +156,7 @@ const Produccion = () => {
       fecha: newLote.fecha || new Date().toISOString().split('T')[0],
       tipo_molido: newLote.tipo_molido,
       cantidad_procesada_kg: parseFloat(newLote.cantidad_procesada),
-      tiempo_produccion: newLote.tiempo_produccion,
+      tiempo_produccion: tiempoProduccionMinutos, // Guardar en minutos
       id_lote_tostado: parseInt(newLote.id_lote_tostado),
       id_grano: parseInt(newLote.id_grano)
     };
@@ -333,12 +336,39 @@ const Produccion = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Tiempo de Producción</label>
-                    <input
-                      type="time"
-                      value={editData.tiempo_produccion}
-                      onChange={(e) => setEditData({...editData, tiempo_produccion: e.target.value})}
-                      className="w-full p-2 border rounded"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        placeholder="Horas"
+                        min="0"
+                        value={editData.tiempo_produccion.split(':')[0] || ''}
+                        onChange={(e) => {
+                          const horas = parseInt(e.target.value) || 0;
+                          const [_, minutos] = editData.tiempo_produccion.split(':').map(Number);
+                          setEditData({
+                            ...editData,
+                            tiempo_produccion: `${horas}:${minutos || '00'}`
+                          });
+                        }}
+                        className="w-1/2 p-2 border rounded"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Minutos"
+                        min="0"
+                        max="59"
+                        value={editData.tiempo_produccion.split(':')[1] || ''}
+                        onChange={(e) => {
+                          const minutos = parseInt(e.target.value) || 0;
+                          const [horas] = editData.tiempo_produccion.split(':').map(Number);
+                          setEditData({
+                            ...editData,
+                            tiempo_produccion: `${horas || '0'}:${minutos}`
+                          });
+                        }}
+                        className="w-1/2 p-2 border rounded"
+                      />
+                    </div>
                   </div>
                 </>
               )}
@@ -456,12 +486,39 @@ const Produccion = () => {
                   </div>
                   <div className="block text-sm font-medium mb-1">
                     <label>Tiempo de Producción:</label>
-                    <input
-                      type="time"
-                      onChange={(e) => setNewLote({...newLote, tiempo_produccion: e.target.value})}
-                      className="w-full p-2 border rounded"
-                      required
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        placeholder="Horas"
+                        min="0"
+                        onChange={(e) => {
+                          const horas = parseInt(e.target.value) || 0;
+                          const [_, minutos] = newLote.tiempo_produccion.split(':').map(Number);
+                          setNewLote({
+                            ...newLote,
+                            tiempo_produccion: `${horas}:${minutos || '00'}`
+                          });
+                        }}
+                        className="w-1/2 p-2 border rounded"
+                        required
+                      />
+                      <input
+                        type="number"
+                        placeholder="Minutos"
+                        min="0"
+                        max="59"
+                        onChange={(e) => {
+                          const minutos = parseInt(e.target.value) || 0;
+                          const [horas] = newLote.tiempo_produccion.split(':').map(Number);
+                          setNewLote({
+                            ...newLote,
+                            tiempo_produccion: `${horas || '0'}:${minutos}`
+                          });
+                        }}
+                        className="w-1/2 p-2 border rounded"
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="block text-sm font-medium mb-1">
                     <label>Cantidad Procesada (kg):</label>
@@ -615,7 +672,9 @@ const Produccion = () => {
                     <>
                       <td className="p-3 text-center text-sm">{lote.cantidad_procesada_kg}kg</td>
                       <td className="p-3 text-center text-sm">{lote.tipo_molido}</td>
-                      <td className="p-3 text-center text-sm">{lote.tiempo_produccion}</td>
+                      <td className="p-3 text-center text-sm">
+                        {`${Math.floor(lote.tiempo_produccion / 60)}h ${lote.tiempo_produccion % 60}m`}
+                      </td>
                       <td className="p-3 text-center text-sm">{lote.id_lote_tostado}</td>
                     </>
                   )}
