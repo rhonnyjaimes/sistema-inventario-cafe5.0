@@ -142,13 +142,13 @@ const Produccion = () => {
       return;
     }
 
-    // Convertir valores vacíos a null como en Materia Prima
+    // Convertir tiempo de producción al formato HH:mm:ss
     const [hours, minutes] = newLote.tiempo_produccion.split(':').map(Number);
-    const tiempoProduccionMinutos = hours * 60 + minutes;
+    const tiempoProduccionFormatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
 
     const body = tipoProduccion === 'tostado' ? {
       fecha: newLote.fecha,
-      temperatura: newLote.temperatura || null,  // Convertir undefined a null
+      temperatura: newLote.temperatura || null,
       peso_inicial_kg: newLote.peso_inicial_kg,
       peso_final_kg: newLote.peso_final_kg,
       id_grano: newLote.id_grano
@@ -156,10 +156,11 @@ const Produccion = () => {
       fecha: newLote.fecha || new Date().toISOString().split('T')[0],
       tipo_molido: newLote.tipo_molido,
       cantidad_procesada_kg: parseFloat(newLote.cantidad_procesada),
-      tiempo_produccion: tiempoProduccionMinutos, // Guardar en minutos
+      tiempo_produccion: tiempoProduccionFormatted, // Guardar en formato HH:mm:ss
       id_lote_tostado: parseInt(newLote.id_lote_tostado),
       id_grano: parseInt(newLote.id_grano)
     };
+
       const response = await fetch(`http://localhost:3001/api/${endpoint}`, {
         method: 'POST',
         headers: {
@@ -676,7 +677,12 @@ const Produccion = () => {
                       <td className="p-3 text-center text-sm">{lote.cantidad_procesada_kg}kg</td>
                       <td className="p-3 text-center text-sm">{lote.tipo_molido}</td>
                       <td className="p-3 text-center text-sm">
-                        {`${Math.floor(lote.tiempo_produccion / 60)}h ${lote.tiempo_produccion % 60}m`}
+                        {lote.tiempo_produccion
+                          ? (() => {
+                              const [hours, minutes, seconds] = lote.tiempo_produccion.split(':').map(Number);
+                              return `${hours || 0}h ${minutes || 0}m`;
+                            })()
+                          : 'Tiempo no válido'}
                       </td>
                       <td className="p-3 text-center text-sm">{lote.id_lote_tostado}</td>
                     </>
