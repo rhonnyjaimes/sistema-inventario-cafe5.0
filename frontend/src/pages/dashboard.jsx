@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const Dashboard = () => {
   const [userData, setUserData] = useState(null);
@@ -118,11 +119,18 @@ const Dashboard = () => {
       molido: { red: 20, yellow: 50 }
     };
   
-    // Colores actualizados para coincidir con las alertas
     if (value <= thresholds[type].red) return 'bg-[#fcc]/100 border-l-4 border-[#fcc]/70';
     if (value <= thresholds[type].yellow) return 'bg-[#fff7cc]/100 border-l-4 border-[#fff7cc]/70';
     return 'bg-white border-l-4 border-[#ffffff]/70';
   };
+
+  // Datos para el gráfico
+  const chartData = [
+    { producto: 'Granos', stock: stockData.granos },
+    { producto: 'Tostado', stock: stockData.tostado },
+    { producto: 'Molido', stock: stockData.molido }
+  ];
+
   if (!userData) return <div className="p-4 text-gray-600">Cargando...</div>;
 
   return (
@@ -235,11 +243,44 @@ const Dashboard = () => {
           </div>
 
           <div className="col-span-full rounded-lg bg-white p-6 shadow">
-            <h3 className="mb-4 text-lg font-bold text-[#4A2C2A]">Producción Mensual</h3>
-            <div className="h-64 rounded-lg bg-[#8FBC8F]/30 p-4">
-              <div className="flex h-full items-center justify-center text-gray-400">
-                Gráfico de producción vs ventas
-              </div>
+            <h3 className="mb-4 text-lg font-bold text-[#4A2C2A]">Stock por Producto</h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="producto" 
+                    tick={{ fill: '#4A2C2A' }}
+                  />
+                  <YAxis 
+                    tick={{ fill: '#4A2C2A' }}
+                    label={{
+                      value: 'Kg',
+                      angle: -90,
+                      position: 'insideLeft',
+                      fill: '#4A2C2A'
+                    }}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: '#4A2C2A',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: 'white'
+                    }}
+                    formatter={(value) => [`${value.toFixed(2)} kg`, 'Stock']}
+                  />
+                  <Bar 
+                    dataKey="stock" 
+                    fill="#8FBC8F"
+                    radius={[4, 4, 0, 0]}
+                    animationDuration={500}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>

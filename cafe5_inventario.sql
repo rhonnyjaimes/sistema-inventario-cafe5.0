@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 31-03-2025 a las 04:01:20
+-- Tiempo de generación: 07-04-2025 a las 06:27:31
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -20,18 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `cafe5_inventario`
 --
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `clientes`
---
-
-CREATE TABLE `clientes` (
-  `id_cliente` int(11) NOT NULL,
-  `nombre` varchar(100) NOT NULL,
-  `contacto` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -55,9 +43,11 @@ CREATE TABLE `granos` (
 --
 
 INSERT INTO `granos` (`id_grano`, `origen`, `cantidad_kg`, `fecha_despacho`, `fecha_caducidad`, `id_proveedor`, `lote_pagado`, `metodo_pago`) VALUES
-(6, 'Caracas', 50.00, '2024-02-29', '2024-08-31', 1, 1, 'Transferencia Bancaria'),
+(6, 'Caracas', 0.00, '2024-02-29', '2024-08-31', 1, 1, 'Transferencia Bancaria'),
 (11, 'Caracas', 0.00, '2025-03-25', '2025-12-31', 1, 0, 'Pago Pendiente'),
-(12, 'Valencia', 50.00, '2025-03-25', '2025-07-31', 2, 0, 'Efectivo');
+(12, 'Valencia', 0.00, '2025-03-25', '2025-07-31', 2, 0, 'Efectivo'),
+(13, 'Valencia', 20.00, '2025-03-31', '2025-06-30', 2, 0, 'Pagp Pendiente'),
+(14, 'Trujillo', 50.00, '2025-03-31', '2025-03-31', 5, 0, 'Pago Pendiente');
 
 -- --------------------------------------------------------
 
@@ -70,7 +60,7 @@ CREATE TABLE `lotesmolido` (
   `tipo_molido` varchar(20) NOT NULL CHECK (`tipo_molido` in ('fino','medio','grueso')),
   `cantidad_procesada_kg` decimal(10,2) NOT NULL,
   `fecha` date NOT NULL,
-  `tiempo_produccion` int(11) NOT NULL COMMENT 'Tiempo en minutos',
+  `tiempo_produccion` time NOT NULL,
   `id_lote_tostado` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -79,7 +69,10 @@ CREATE TABLE `lotesmolido` (
 --
 
 INSERT INTO `lotesmolido` (`id_lote_molido`, `tipo_molido`, `cantidad_procesada_kg`, `fecha`, `tiempo_produccion`, `id_lote_tostado`) VALUES
-(3, 'medio', 0.00, '2025-03-25', 90, 7);
+(3, 'medio', 0.00, '2025-03-25', '01:30:00', 7),
+(4, 'medio', 0.00, '2025-03-25', '01:30:00', 7),
+(5, 'medio', 10.00, '2025-04-06', '14:00:00', 6),
+(6, 'medio', 40.00, '2025-04-06', '01:27:00', 8);
 
 --
 -- Disparadores `lotesmolido`
@@ -131,9 +124,9 @@ CREATE TABLE `lotestostado` (
 --
 
 INSERT INTO `lotestostado` (`id_lote_tostado`, `fecha`, `temperatura`, `peso_inicial_kg`, `peso_final_kg`, `cantidad_disponible_kg`, `fecha_caducidad`, `id_grano`) VALUES
-(6, '2025-03-25', 200.00, 80.00, 45.00, 45.00, '2024-08-31', 6),
-(7, '2025-03-25', 200.00, 100.00, 80.00, 60.00, '2025-12-31', 11),
-(8, '2025-03-25', 200.00, 50.00, 45.00, 45.00, '2024-08-31', 6);
+(6, '2025-03-25', 200.00, 80.00, 45.00, 35.00, '2024-08-31', 6),
+(7, '2025-03-25', 200.00, 100.00, 80.00, 10.00, '2025-12-31', 11),
+(8, '2025-03-25', 200.00, 50.00, 45.00, 5.00, '2024-08-31', 6);
 
 --
 -- Disparadores `lotestostado`
@@ -177,10 +170,61 @@ CREATE TABLE `pedidos` (
   `id_pedido` int(11) NOT NULL,
   `fecha_pedido` date NOT NULL,
   `fecha_entrega` date NOT NULL,
-  `cantidad` int(11) NOT NULL,
-  `id_cliente` int(11) NOT NULL,
-  `id_producto` int(11) NOT NULL
+  `cantidad_paquetes` int(11) NOT NULL,
+  `id_producto` int(11) NOT NULL,
+  `estado_pago` enum('pendiente','cobrado') NOT NULL DEFAULT 'pendiente'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `pedidos`
+--
+
+INSERT INTO `pedidos` (`id_pedido`, `fecha_pedido`, `fecha_entrega`, `cantidad_paquetes`, `id_producto`, `estado_pago`) VALUES
+(2, '2025-04-06', '2025-04-09', 5, 2, 'pendiente'),
+(3, '2025-04-07', '2025-04-08', 2, 1, 'pendiente'),
+(4, '2025-04-07', '2025-04-09', 2, 9, 'cobrado'),
+(5, '2025-04-07', '2025-04-09', 8, 1, 'cobrado');
+
+--
+-- Disparadores `pedidos`
+--
+DELIMITER $$
+CREATE TRIGGER `before_pedido_insert` BEFORE INSERT ON `pedidos` FOR EACH ROW BEGIN
+    DECLARE stock_paquetes INT;
+    DECLARE producto_existente BOOLEAN;
+
+    -- Verificar si el producto existe
+    SELECT EXISTS (
+        SELECT 1 
+        FROM productosterminados 
+        WHERE id_producto = NEW.id_producto
+    ) INTO producto_existente;
+
+    IF NOT producto_existente THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: El producto no existe en inventario';
+    END IF;
+
+    -- Obtener stock actual del producto (y bloquear la fila para evitar concurrencia)
+    SELECT cantidad_paquetes 
+    INTO stock_paquetes
+    FROM productosterminados 
+    WHERE id_producto = NEW.id_producto
+    FOR UPDATE;
+
+    -- Validar stock suficiente
+    IF stock_paquetes < NEW.cantidad_paquetes THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Stock insuficiente';
+    END IF;
+
+    -- Restar paquetes del producto terminado
+    UPDATE productosterminados 
+    SET cantidad_paquetes = cantidad_paquetes - NEW.cantidad_paquetes 
+    WHERE id_producto = NEW.id_producto;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -201,7 +245,13 @@ CREATE TABLE `productosterminados` (
 --
 
 INSERT INTO `productosterminados` (`id_producto`, `id_lote_molido`, `presentacion`, `cantidad_paquetes`, `fecha_vencimiento`) VALUES
-(1, 3, '0.5', 10, '2025-12-31');
+(1, 3, '0.5', 0, '2025-12-31'),
+(2, 4, '0.5', 0, '2025-12-31'),
+(4, 4, '0.5', 10, '2025-12-31'),
+(5, 4, '0.5', 10, '2025-12-31'),
+(6, 4, '0.5', 10, '2025-12-31'),
+(8, 4, '0.25', 4, '2025-12-31'),
+(9, 4, '1', 2, '2025-12-31');
 
 --
 -- Disparadores `productosterminados`
@@ -211,32 +261,41 @@ CREATE TRIGGER `before_productoterminado_insert` BEFORE INSERT ON `productosterm
     DECLARE kg_necesarios DECIMAL(10,2);
     DECLARE stock_actual DECIMAL(10,2);
     DECLARE fecha_caducidad_tostado DATE;
-    
-    -- Obtener fecha de caducidad del lote tostado relacionado
+    DECLARE valor_presentacion DECIMAL(3,2);
+
+    -- Obtener el valor decimal real del ENUM
+    SET valor_presentacion = 
+        CASE NEW.presentacion
+            WHEN '0.25' THEN 0.25
+            WHEN '0.5' THEN 0.50
+            WHEN '1' THEN 1.00
+        END;
+
+    -- Obtener fecha de caducidad del lote tostado
     SELECT lt.fecha_caducidad 
     INTO fecha_caducidad_tostado
     FROM lotesmolido lm
     JOIN lotestostado lt ON lm.id_lote_tostado = lt.id_lote_tostado
     WHERE lm.id_lote_molido = NEW.id_lote_molido;
-    
+
     -- Establecer fecha de vencimiento
     SET NEW.fecha_vencimiento = COALESCE(fecha_caducidad_tostado, DATE_ADD(CURDATE(), INTERVAL 6 MONTH));
-    
-    -- Calcular kg necesarios
-    SET kg_necesarios = NEW.cantidad_paquetes * CAST(NEW.presentacion AS DECIMAL(3,2));
-    
+
+    -- Calcular kg necesarios usando el valor real
+    SET kg_necesarios = NEW.cantidad_paquetes * valor_presentacion;
+
     -- Obtener stock actual del lote molido
     SELECT cantidad_procesada_kg 
     INTO stock_actual 
     FROM lotesmolido 
     WHERE id_lote_molido = NEW.id_lote_molido;
-    
+
     -- Validar stock
     IF stock_actual < kg_necesarios THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Stock insuficiente en lote molido';
     END IF;
-    
+
     -- Actualizar stock
     UPDATE lotesmolido 
     SET cantidad_procesada_kg = cantidad_procesada_kg - kg_necesarios
@@ -267,7 +326,9 @@ CREATE TABLE `proveedores` (
 INSERT INTO `proveedores` (`id_proveedor`, `nombre_empresa`, `documento`, `correo`, `telefono`, `ubicacion`) VALUES
 (1, 'Cafe Caracas', 'J-123456789', 'CAFE@CARACAS.COM', '4125551234', 'Caracas, Venezuela'),
 (2, 'Cafe Valencia', 'J-987654321', 'info@electroparts.com', '4245556789', 'Valencia, Venezuela'),
-(5, 'Cafe Trujillo', 'J-1231521', 'Cafe@trujillo.com', '4125551234', 'Trujillo, Venezuela');
+(5, 'Cafe Trujillo', 'J-1231521', 'Cafe@trujillo.com', '4125551234', 'Trujillo, Venezuela'),
+(7, 'Cafe Trujillo', 'J-123456', 'cafe@trujillo.com', '66357744232', 'Trujillo'),
+(8, 'Valera Cafe', 'J-3435343', 'valera@cafe.com', '04143254234', 'Valera');
 
 -- --------------------------------------------------------
 
@@ -288,19 +349,11 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombre`, `email`, `contrasena`, `rol`) VALUES
-(6, 'Juan', 'juan@juan.com', '$2b$10$ZDLPugKQf.bE7QlXEWP9UuufCiufBHqnM5rrx0kGXPCeeF5m62o/2', 'gerente'),
-(8, 'Operario', 'operario@cafe.com', '$2b$10$HGfzQRbXu9FhuP9Cmp4PH.pXKVZWliuG647K5x.JXNEGFg0sBCe2q', 'operario'),
 (9, 'Admin', 'admin@admin.com', '$2b$10$lnr9rBJESnXCOJE9BZ7Xu.JpzVr.OVCtrZcj3MBAbICZXKSVwEJ/C', 'gerente');
 
 --
 -- Índices para tablas volcadas
 --
-
---
--- Indices de la tabla `clientes`
---
-ALTER TABLE `clientes`
-  ADD PRIMARY KEY (`id_cliente`);
 
 --
 -- Indices de la tabla `granos`
@@ -328,8 +381,7 @@ ALTER TABLE `lotestostado`
 --
 ALTER TABLE `pedidos`
   ADD PRIMARY KEY (`id_pedido`),
-  ADD KEY `id_cliente` (`id_cliente`),
-  ADD KEY `id_producto` (`id_producto`);
+  ADD KEY `pedidos_ibfk_1` (`id_producto`);
 
 --
 -- Indices de la tabla `productosterminados`
@@ -356,22 +408,16 @@ ALTER TABLE `usuarios`
 --
 
 --
--- AUTO_INCREMENT de la tabla `clientes`
---
-ALTER TABLE `clientes`
-  MODIFY `id_cliente` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `granos`
 --
 ALTER TABLE `granos`
-  MODIFY `id_grano` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_grano` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT de la tabla `lotesmolido`
 --
 ALTER TABLE `lotesmolido`
-  MODIFY `id_lote_molido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_lote_molido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `lotestostado`
@@ -383,25 +429,25 @@ ALTER TABLE `lotestostado`
 -- AUTO_INCREMENT de la tabla `pedidos`
 --
 ALTER TABLE `pedidos`
-  MODIFY `id_pedido` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `productosterminados`
 --
 ALTER TABLE `productosterminados`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`
 --
 ALTER TABLE `proveedores`
-  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- Restricciones para tablas volcadas
@@ -429,8 +475,7 @@ ALTER TABLE `lotestostado`
 -- Filtros para la tabla `pedidos`
 --
 ALTER TABLE `pedidos`
-  ADD CONSTRAINT `pedidos_ibfk_1` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`),
-  ADD CONSTRAINT `pedidos_ibfk_2` FOREIGN KEY (`id_producto`) REFERENCES `productosterminados` (`id_producto`);
+  ADD CONSTRAINT `pedidos_ibfk_1` FOREIGN KEY (`id_producto`) REFERENCES `productosterminados` (`id_producto`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `productosterminados`
