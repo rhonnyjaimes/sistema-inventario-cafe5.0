@@ -230,13 +230,16 @@ const Usuarios = () => {
         </div>
         
         <nav className="space-y-2">
-          {[
+                  {[
             { name: 'Dashboard', path: '/dashboard' },
             { name: 'Materia Prima', path: '/matprima' },
             { name: 'Producción', path: '/prod' },
             { name: 'Productos Terminados', path: '/prodterm' },
             { name: 'Ventas', path: '/ventas' },
-            { name: 'Gestión de Usuarios', path: '/usuarios' }
+            // Solo muestra esta opción si el usuario es gerente
+            ...(userData?.rol === 'gerente' 
+              ? [{ name: 'Gestion de Usuarios', path: '/usuarios' }] 
+              : [])
           ].map((item) => (
             <button
               key={item.name}
@@ -377,7 +380,6 @@ const Usuarios = () => {
                     >
                       <option value="supervisor">Supervisor</option>
                       <option value="operario">Operario</option>
-                      <option value="gerente">Gerente</option>
                     </select>
                   </div>
                   
@@ -490,7 +492,6 @@ const Usuarios = () => {
                   >
                     <option value="operario">Operario</option>
                     <option value="supervisor">Supervisor</option>
-                    <option value="gerente">Gerente</option>
                   </select>
                 </div>
 
