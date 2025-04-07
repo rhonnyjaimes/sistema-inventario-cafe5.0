@@ -12,6 +12,7 @@ const checkAuth = (navigate) => {
 };
 
 const ProductosTerminados = () => {
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [userData, setUserData] = useState(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
@@ -114,6 +115,13 @@ const ProductosTerminados = () => {
         throw new Error(errorData.message || 'Error guardando datos');
       }
 
+            // Cerrar modal inmediatamente
+      setShowFormModal(false);
+      
+      // Mostrar animación de éxito
+      setShowSuccessAnimation(true);
+      setTimeout(() => setShowSuccessAnimation(false), 2000);
+
       // Actualizar lista
       const updatedData = await fetch('http://localhost:3001/api/productosterminados', {
         headers: { Authorization: `Bearer ${token}` }
@@ -121,7 +129,6 @@ const ProductosTerminados = () => {
       
       setProductosTerminados(updatedData);
       setSuccess('Operación exitosa');
-      setTimeout(() => setShowFormModal(false), 1500);
     } catch (error) {
       console.error('Error:', error);
       setError(error.message);
@@ -151,6 +158,13 @@ const ProductosTerminados = () => {
 
   return (
     <div className="min-h-screen bg-[#8FBC8F] font-sans">
+
+        {showSuccessAnimation && (
+                <div className="fixed top-4 right-4 animate-fade-in-out bg-green-500 text-white px-4 py-2 rounded-lg">
+                  ✔ Lote registrado exitosamente!
+                </div>
+              )}
+
       {/* Sidebar */}
       <div className={`fixed left-0 top-0 h-full w-64 bg-[#4A2C2A] p-4 ${isLoggingOut ? 'animate-slide-out-left' : 'animate-slide-in-left'}`}>
         <div className="mb-8 flex items-center gap-4 border-b border-[#8FBC8F] pb-4">
